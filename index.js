@@ -19,6 +19,7 @@ class TrezorKeyring extends EventEmitter {
     this.page = 0
     this.perPage = 5
     this.unlockedAccount = 0
+    this.paths = {}
     this.deserialize(opts)
   }
 
@@ -34,6 +35,7 @@ class TrezorKeyring extends EventEmitter {
     this.hdPath = opts.hdPath || hdPathString
     this.accounts = opts.accounts || []
     this.page = opts.page || 0
+    this.paths = opts.paths || {};
     return Promise.resolve()
   }
 
@@ -72,8 +74,8 @@ class TrezorKeyring extends EventEmitter {
           this.accounts = []
 
           for (let i = from; i < to; i++) {
-
-            this.accounts.push(this._addressFromId(pathBase, i))
+            const address = this._addressFromIndex(pathBase, i);
+            this.accounts.push(address)
             this.page = 0
           }
           resolve(this.accounts)
@@ -98,12 +100,14 @@ class TrezorKeyring extends EventEmitter {
           const accounts = []
 
           for (let i = from; i < to; i++) {
-
-            accounts.push({
-              address: this._addressFromId(pathBase, i),
+            const address = this._addressFromIndex(pathBase, i);
+             accounts.push({
+              address: address,
               balance: 0,
-              index: i,
-            })
+              index: i
+            });
+            this.path[address] = i;
+
           }
           resolve(accounts)
         })
@@ -123,7 +127,7 @@ class TrezorKeyring extends EventEmitter {
       return new Promise((resolve, reject) => {
 
         TrezorConnect.ethereumSignTx(
-          this._getUnlockedAccount(),
+          this._pathFromAddress(address),
           this._normalize(tx.nonce),
           this._normalize(tx.gasPrice),
           this._normalize(tx.gasLimit),
@@ -163,7 +167,7 @@ class TrezorKeyring extends EventEmitter {
   // For personal_sign, we need to prefix the message:
   async signPersonalMessage (withAccount, message) {
 
-    TrezorConnect.ethereumSignMessage(this._getUnlockedAccount(), message, response => {
+    TrezorConnect.ethereumSignMessage(this._pathFromAddress(withAccount), message, response => {
       if (response.success) {
 
           const signature = this._personalToRawSig(response.signature)
@@ -198,7 +202,7 @@ class TrezorKeyring extends EventEmitter {
     return this._padLeftEven(ethUtil.bufferToHex(buf).substring(2).toLowerCase())
   }
 
-  _addressFromId (pathBase, i) {
+  _addressFromIndex (pathBase, i) {
     const dkey = this.hdk.derive(`${pathBase}/${i}`)
     const address = ethUtil
       .publicToAddress(dkey.publicKey, true)
@@ -206,8 +210,9 @@ class TrezorKeyring extends EventEmitter {
     return ethUtil.toChecksumAddress(address)
   }
 
-  _getUnlockedAccount () {
-    return `${this.hdPath}/${this.unlockedAccount}`
+  _pathFromAddress(address){
+    const index = this.path[address]
+    return `${this.hdPath}/${index}`
   }
 
   _personalToRawSig (signature) {
