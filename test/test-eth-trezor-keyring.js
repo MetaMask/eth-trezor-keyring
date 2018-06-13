@@ -5,9 +5,6 @@ const ethUtil = require('ethereumjs-util')
 const sigUtil = require('eth-sig-util')
 const EthereumTx = require('ethereumjs-tx')
 const assert = require('assert')
-
-const window = {};
-
 const TrezorKeyring = require('../')
 
 

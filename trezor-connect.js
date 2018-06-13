@@ -25,7 +25,7 @@ function _fwStrFix(obj, fw) {
 }
 
 ("use strict");
-var window = window || {}
+var window = global.window || {}
 var chrome = window && window.chrome;
 var IS_CHROME_APP = chrome && chrome.app && chrome.app.window;
 
