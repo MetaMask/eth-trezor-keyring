@@ -1,5 +1,6 @@
-eth-trezor-keyring
+eth-trezor-keyring [![CircleCI](https://circleci.com/gh/brunobar79/eth-trezor-keyring.svg?style=svg)](https://circleci.com/gh/brunobar79/eth-trezor-keyring)
 ==================
+
 An implementation of MetaMask's [Keyring interface](https://github.com/MetaMask/eth-simple-keyring#the-keyring-class-protocol), that uses a trezor hardware
 wallet for all cryptographic operations.
 

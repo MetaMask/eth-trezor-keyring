@@ -1,0 +1,6 @@
+machine:
+  node:
+    version: 8.11.3
+dependencies:
+  pre:
+    - "npm i -g mocha"
