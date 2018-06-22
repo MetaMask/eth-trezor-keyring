@@ -70,7 +70,7 @@ class TrezorKeyring extends EventEmitter {
       return this.unlock()
         .then(_ => {
           const from = this.unlockedAccount
-          const to = from + 1
+          const to = from + n
           this.accounts = []
 
           for (let i = from; i < to; i++) {
@@ -160,7 +160,7 @@ class TrezorKeyring extends EventEmitter {
      })
   }
 
-  async signMessage (withAccount, data) {
+  signMessage (withAccount, data) {
     throw new Error('Not supported on this device')
   }
 
@@ -185,12 +185,12 @@ class TrezorKeyring extends EventEmitter {
     }, TREZOR_MIN_FIRMWARE_VERSION)
   }
 
-  async signTypedData (withAccount, typedData) {
+  signTypedData (withAccount, typedData) {
     // Waiting on trezor to enable this
     throw new Error('Not supported on this device')
   }
 
-  async exportAccount (address) {
+  exportAccount (address) {
     throw new Error('Not supported on this device')
   }
 
