@@ -194,6 +194,8 @@ class TrezorKeyring extends EventEmitter {
     throw new Error('Not supported on this device')
   }
 
+  /* PRIVATE METHODS */
+
   _padLeftEven (hex) {
     return hex.length % 2 !== 0 ? `0${hex}` : hex
   }

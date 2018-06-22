@@ -33,8 +33,17 @@ const fakeAccounts = [
 
 const fakeXPubKey = 'xpub6FnCn6nSzZAw5Tw7cgR9bi15UV96gLZhjDstkXXxvCLsUXBGXPdSnLFbdpq8p9HmGsApME5hQTZ3emM2rnY5agb9rXpVGyy3bdW6EEgAtqt'
 const fakeHdKey = HDKey.fromExtendedKey(fakeXPubKey)
-
-
+const fakeTx = new EthereumTx({
+    nonce: '0x00',
+    gasPrice: '0x09184e72a000', 
+    gasLimit: '0x2710',
+    to: '0x0000000000000000000000000000000000000000', 
+    value: '0x00', 
+    data: '0x7f7465737432000000000000000000000000000000000000000000000000000000600057',
+    // EIP 155 chainId - mainnet: 1, ropsten: 3
+    chainId: 1
+});
+ 
 chai.use(spies);
 
 describe('TrezorKeyring', function () {
@@ -187,7 +196,44 @@ describe('TrezorKeyring', function () {
     })
 
     describe('signTransaction', function() {
-        
+        //TrezorConnect.ethereumSignTx should be called with
+        //param 1
+        //param 2
+        //param 3
+        chai.spy.on(TrezorConnect, 'ethereumSignTx');
+
+        it('should call TrezorConnect.ethereumSignTx with the right params', function(){
+            //Fake the path before signing the transaction
+            keyring.path = {};
+            keyring.path[`${fakeAccounts[0]}`] =  `${keyring.hdPath}/0`;
+
+            keyring.signTransaction (fakeAccounts[0], fakeTx).catch(e => {
+                console.log('window blocked error');
+            })
+            
+            const expectedParams = {
+                address: fakeAccounts[0],
+                nonce: fakeTx.nonce,
+                gasPrice: fakeTx.gasPrice,
+                gasLimit: fakeTx.gasLimit,
+                to: fakeTx.to,
+                value: fakeTx.value,
+                data: fakeTx.data,
+                chainId: fakeTx._chainId
+            };
+
+            expect(TrezorConnect.ethereumSignTx).to.have.been.called.with(
+                expectedParams.address,
+                expectedParams.nonce,
+                expectedParams.gasPrice,
+                expectedParams.gasLimit,
+                expectedParams.to,
+                expectedParams.value,
+                expectedParams.data,
+                expectedParams.chainId
+            )
+
+        })
     })
 
     describe('signMessage', function() {
@@ -216,12 +262,6 @@ describe('TrezorKeyring', function () {
                 keyring.exportAccount();
             }).to.throw('Not supported on this device')
         })
-    })
-
-   
-
-    
-
-    
+    })   
 
 })
