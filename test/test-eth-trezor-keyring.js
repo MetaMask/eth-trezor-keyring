@@ -9,27 +9,18 @@ const TrezorKeyring = require('../')
 
 
 describe('TrezorKeyring', function () {
+    
     let keyring
     beforeEach(async function() {
         keyring = new TrezorKeyring()
     })
-
-    describe('constructor', function(done) {
-        it('constructs', function async (done) {
-            const obj = new TrezorKeyring({hdPath: `m/44'/60'/0'/0`})
-            assert.equal(typeof obj, 'object')
-            done()
-        })
-    })
-
+    
     describe('Keyring.type', function() {
         it('is a class property that returns the type string.', function() {
             const type = TrezorKeyring.type
             assert.equal(typeof type, 'string')
         })
-    })
-
-    describe('#type', function() {
+        
         it('returns the correct value', function() {
             const type = keyring.type
             const correct = TrezorKeyring.type
@@ -37,12 +28,50 @@ describe('TrezorKeyring', function () {
         })
     })
 
-    describe('#serialize', function() {
-
+    describe('constructor', function() {
+        it('constructs',  function(done) {
+            const t = new TrezorKeyring({hdPath: `m/44'/60'/0'/0`});
+            assert.equal(typeof t, 'object');
+            t.getAccounts()
+            .then(accounts => {
+                assert.equal(Array.isArray(accounts), true);
+                done()
+            })
+        })
     })
 
-    describe('#deserialize', function() {
-   
+    describe('serialize', function() {
+        it('serializes an instance', function(done) {
+            keyring.serialize()
+            .then((output) => {
+              assert.equal(output.page, 0)
+              assert.equal(output.hdPath, `m/44'/60'/0'/0`)
+              assert.equal(Array.isArray(output.accounts), true);
+              assert.equal(output.accounts.length, 0)
+              done()
+            })
+          })
+    })
+
+    describe('deserialize', function() {
+        it('serializes what it deserializes', function() {
+            
+            const someHdPath = `m/44'/60'/0'/1`;
+
+            keyring.deserialize({
+                page: 10,
+                hdPath: someHdPath,
+                accounts: []
+            })
+            .then(() => {
+                return keyring.serialize()
+            }).then((serialized) => {
+                assert.equal(serialized.accounts.length, 0, 'restores 0 accounts')
+                assert.equal(serialized.page, 10, 'restores page')
+                assert.equal(serialized.hdPath, someHdPath, 'restores hdPath')
+               
+            })
+        })
     })
 
     describe('#addAccounts', function() {
