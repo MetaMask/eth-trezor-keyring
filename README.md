@@ -29,7 +29,7 @@ there are a few others:
 
 Testing
 -------
-Work in progress, but you can run it like this:
+Run the following command:
 
 ```
 npm test
