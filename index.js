@@ -36,7 +36,7 @@ class TrezorKeyring extends EventEmitter {
     this.accounts = opts.accounts || []
     this.page = opts.page || 0
     this.perPage = opts.perPage || 5
-    this.paths = opts.paths || {};
+    this.paths = opts.paths || {}
     return Promise.resolve()
   }
 
@@ -75,7 +75,7 @@ class TrezorKeyring extends EventEmitter {
           this.accounts = []
 
           for (let i = from; i < to; i++) {
-            const address = this._addressFromIndex(pathBase, i);
+            const address = this._addressFromIndex(pathBase, i)
             this.accounts.push(address)
             this.page = 0
           }
@@ -87,18 +87,18 @@ class TrezorKeyring extends EventEmitter {
     })
   }
 
-  getNextPage(){
+  getNextPage () {
     return this.__getPage(1)
   }
-  
-  getPreviousPage(){
+
+  getPreviousPage () {
     return this.__getPage(-1)
   }
 
   __getPage (increment) {
 
-    this.page += increment;
-    
+    this.page += increment
+
     return new Promise((resolve, reject) => {
       return this.unlock()
         .then(_ => {
@@ -109,13 +109,13 @@ class TrezorKeyring extends EventEmitter {
           const accounts = []
 
           for (let i = from; i < to; i++) {
-            const address = this._addressFromIndex(pathBase, i);
+            const address = this._addressFromIndex(pathBase, i)
              accounts.push({
               address: address,
               balance: 0,
-              index: i
-            });
-            this.path[address] = i;
+              index: i,
+            })
+            this.path[address] = i
 
           }
           resolve(accounts)
@@ -222,7 +222,7 @@ class TrezorKeyring extends EventEmitter {
     return ethUtil.toChecksumAddress(address)
   }
 
-  _pathFromAddress(address){
+  _pathFromAddress (address) {
     const index = this.path[address]
     return `${this.hdPath}/${index}`
   }
