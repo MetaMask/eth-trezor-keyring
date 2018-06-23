@@ -1,10 +1,6 @@
-const fs = require('fs')
-const path = require('path')
 const chai = require('chai')
 const spies = require('chai-spies')
-const {expect}  = chai
-const ethUtil = require('ethereumjs-util')
-const sigUtil = require('eth-sig-util')
+const {expect} = chai
 const EthereumTx = require('ethereumjs-tx')
 const assert = require('assert')
 const HDKey = require('hdkey')
@@ -13,7 +9,7 @@ const TrezorConnect = require('../trezor-connect.js')
 
 const TrezorKeyring = require('../')
 
-const fakeAccounts = [ 
+const fakeAccounts = [
     '0xF30952A1c534CDE7bC471380065726fa8686dfB3',
     '0x44fe3Cf56CaF651C4bD34Ae6dbcffa34e9e3b84B',
     '0x8Ee3374Fa705C1F939715871faf91d4348D5b906',
@@ -28,49 +24,49 @@ const fakeAccounts = [
     '0xE761dA62f053ad9eE221d325657535991Ab659bD',
     '0xd4F1686961642340a80334b5171d85Bbd390c691',
     '0x6772C4B1E841b295960Bb4662dceD9bb71726357',
-    '0x41bEAD6585eCA6c79B553Ca136f0DFA78A006899' 
+    '0x41bEAD6585eCA6c79B553Ca136f0DFA78A006899',
 ]
 
 const fakeXPubKey = 'xpub6FnCn6nSzZAw5Tw7cgR9bi15UV96gLZhjDstkXXxvCLsUXBGXPdSnLFbdpq8p9HmGsApME5hQTZ3emM2rnY5agb9rXpVGyy3bdW6EEgAtqt'
 const fakeHdKey = HDKey.fromExtendedKey(fakeXPubKey)
 const fakeTx = new EthereumTx({
     nonce: '0x00',
-    gasPrice: '0x09184e72a000', 
+    gasPrice: '0x09184e72a000',
     gasLimit: '0x2710',
-    to: '0x0000000000000000000000000000000000000000', 
-    value: '0x00', 
+    to: '0x0000000000000000000000000000000000000000',
+    value: '0x00',
     data: '0x7f7465737432000000000000000000000000000000000000000000000000000000600057',
     // EIP 155 chainId - mainnet: 1, ropsten: 3
-    chainId: 1
+    chainId: 1,
 })
- 
+
 chai.use(spies)
 
 describe('TrezorKeyring', function () {
-    
+
     let keyring
 
-    beforeEach(async function() {
+    beforeEach(async function () {
         keyring = new TrezorKeyring()
-        keyring.hdk = fakeHdKey      
-        keyring.path = {}      
+        keyring.hdk = fakeHdKey
+        keyring.path = {}
     })
-    
-    describe('Keyring.type', function() {
-        it('is a class property that returns the type string.', function() {
+
+    describe('Keyring.type', function () {
+        it('is a class property that returns the type string.', function () {
             const type = TrezorKeyring.type
             assert.equal(typeof type, 'string')
         })
-        
-        it('returns the correct value', function() {
+
+        it('returns the correct value', function () {
             const type = keyring.type
             const correct = TrezorKeyring.type
             assert.equal(type, correct)
         })
     })
 
-    describe('constructor', function() {
-        it('constructs',  function(done) {
+    describe('constructor', function () {
+        it('constructs', function (done) {
             const t = new TrezorKeyring({hdPath: `m/44'/60'/0'/0`})
             assert.equal(typeof t, 'object')
             t.getAccounts()
@@ -81,8 +77,8 @@ describe('TrezorKeyring', function () {
         })
     })
 
-    describe('serialize', function() {
-        it('serializes an instance', function(done) {
+    describe('serialize', function () {
+        it('serializes an instance', function (done) {
             keyring.serialize()
             .then((output) => {
               assert.equal(output.page, 0)
@@ -94,15 +90,15 @@ describe('TrezorKeyring', function () {
           })
     })
 
-    describe('deserialize', function() {
-        it('serializes what it deserializes', function(done) {
-            
+    describe('deserialize', function () {
+        it('serializes what it deserializes', function (done) {
+
             const someHdPath = `m/44'/60'/0'/1`
 
             keyring.deserialize({
                 page: 10,
                 hdPath: someHdPath,
-                accounts: []
+                accounts: [],
             })
             .then(() => {
                 return keyring.serialize()
@@ -115,38 +111,38 @@ describe('TrezorKeyring', function () {
         })
     })
 
-    describe('unlock', function() {
-        it('should resolve if we have a public key', function(done){
-            keyring.unlock().then( _ => {
+    describe('unlock', function () {
+        it('should resolve if we have a public key', function (done) {
+            keyring.unlock().then(_ => {
                 done()
             })
         })
-        
+
         chai.spy.on(TrezorConnect, 'getXPubKey')
 
-        it('should call TrezorConnect.getXPubKey if we dont have a public key', async function(){
+        it('should call TrezorConnect.getXPubKey if we dont have a public key', async function () {
             keyring.hdk = new HDKey()
-            try { 
+            try {
                 await keyring.unlock()
-            } catch(e){
+            } catch (e) {
                // because we're trying to open the trezor popup in node
                // it will throw an exception
             } finally {
                 expect(TrezorConnect.getXPubKey).to.have.been.called()
-            }           
+            }
         })
     })
 
-    describe('setAccountToUnlock', function() {
-        it('should set unlockedAccount', function(){
+    describe('setAccountToUnlock', function () {
+        it('should set unlockedAccount', function () {
             keyring.setAccountToUnlock(3)
             assert.equal(keyring.unlockedAccount, 3)
         })
     })
 
-    describe('addAccounts', function() {
-        describe('with no arguments', function() {
-            it('returns a single account', function(done) {
+    describe('addAccounts', function () {
+        describe('with no arguments', function () {
+            it('returns a single account', function (done) {
                 keyring.setAccountToUnlock(0)
                 keyring.addAccounts()
                 .then((accounts) => {
@@ -156,8 +152,8 @@ describe('TrezorKeyring', function () {
             })
         })
 
-        describe('with a numeric argument', function() {
-            it('returns that number of accounts', function(done) {
+        describe('with a numeric argument', function () {
+            it('returns that number of accounts', function (done) {
                 keyring.setAccountToUnlock(0)
                 keyring.addAccounts(5)
                 .then((accounts) => {
@@ -166,7 +162,7 @@ describe('TrezorKeyring', function () {
                 })
             })
 
-            it('returns the expected accounts', function(done) {
+            it('returns the expected accounts', function (done) {
                 keyring.setAccountToUnlock(0)
                 keyring.addAccounts(3)
                 .then((accounts) => {
@@ -176,12 +172,12 @@ describe('TrezorKeyring', function () {
                     done()
                 })
             })
-        })      
+        })
     })
 
-    describe('getNextPage', function() {
+    describe('getNextPage', function () {
 
-        it('should return the list of accounts for current page', async function(){
+        it('should return the list of accounts for current page', async function () {
             const accounts = await keyring.getNextPage()
             expect(accounts.length, keyring.perPage)
             expect(accounts[0].address, fakeAccounts[0])
@@ -191,27 +187,27 @@ describe('TrezorKeyring', function () {
             expect(accounts[4].address, fakeAccounts[4])
         })
 
-        it('should be able to advance to the next page', async function(){
-            //manually advance 1 page
+        it('should be able to advance to the next page', async function () {
+            // manually advance 1 page
             await keyring.getNextPage()
 
             const accounts = await keyring.getNextPage()
             expect(accounts.length, keyring.perPage)
-            expect(accounts[0].address, fakeAccounts[keyring.perPage+0])
-            expect(accounts[1].address, fakeAccounts[keyring.perPage+1])
-            expect(accounts[2].address, fakeAccounts[keyring.perPage+2])
-            expect(accounts[3].address, fakeAccounts[keyring.perPage+3])
-            expect(accounts[4].address, fakeAccounts[keyring.perPage+4])
+            expect(accounts[0].address, fakeAccounts[keyring.perPage + 0])
+            expect(accounts[1].address, fakeAccounts[keyring.perPage + 1])
+            expect(accounts[2].address, fakeAccounts[keyring.perPage + 2])
+            expect(accounts[3].address, fakeAccounts[keyring.perPage + 3])
+            expect(accounts[4].address, fakeAccounts[keyring.perPage + 4])
         })
     })
 
-    describe('getPreviousPage', function() {
+    describe('getPreviousPage', function () {
 
-        it('should return the list of accounts for current page', async function(){
-            //manually advance 1 page
+        it('should return the list of accounts for current page', async function () {
+            // manually advance 1 page
             await keyring.getNextPage()
             const accounts = await keyring.getPreviousPage()
-            
+
             expect(accounts.length, keyring.perPage)
             expect(accounts[0].address, fakeAccounts[0])
             expect(accounts[1].address, fakeAccounts[1])
@@ -221,11 +217,11 @@ describe('TrezorKeyring', function () {
         })
 
 
-        it('should be able to go back to the previous page', async function(){
-            //manually advance 1 page
+        it('should be able to go back to the previous page', async function () {
+            // manually advance 1 page
             await keyring.getNextPage()
             const accounts = await keyring.getPreviousPage()
-            
+
             expect(accounts.length, keyring.perPage)
             expect(accounts[0].address, fakeAccounts[0])
             expect(accounts[1].address, fakeAccounts[1])
@@ -235,36 +231,36 @@ describe('TrezorKeyring', function () {
         })
     })
 
-    describe('getAccounts', async function() {
-        let accountIndex = 5
+    describe('getAccounts', async function () {
+        const accountIndex = 5
         let accounts = []
-        beforeEach(async function() {
+        beforeEach(async function () {
             keyring.setAccountToUnlock(accountIndex)
             await keyring.addAccounts()
             accounts = await keyring.getAccounts()
         })
 
-        it('returns an array of accounts', function() {
+        it('returns an array of accounts', function () {
             assert.equal(Array.isArray(accounts), true)
             assert.equal(accounts.length, 1)
         })
 
-        it('returns the expected', function() {
+        it('returns the expected', function () {
             const expectedAccount = fakeAccounts[accountIndex]
-            assert.equal(accounts[0], expectedAccount)  
+            assert.equal(accounts[0], expectedAccount)
         })
     })
 
-    describe('signTransaction', function() {
-        it('should call TrezorConnect.ethereumSignTx', async function(){
-            
+    describe('signTransaction', function () {
+        it('should call TrezorConnect.ethereumSignTx', async function () {
+
             chai.spy.on(TrezorConnect, 'ethereumSignTx')
 
             keyring.path[fakeAccounts[0]] = 0
 
-            try { 
+            try {
                 await keyring.signTransaction(fakeAccounts[0], fakeTx)
-            } catch(e){
+            } catch (e) {
                // because we're trying to open the trezor popup in node
                // it will throw an exception
             } finally {
@@ -273,24 +269,24 @@ describe('TrezorKeyring', function () {
         })
     })
 
-    describe('signMessage', function() {
-        it('should throw an error because it is not supported', function(){
-            expect( _ => {
+    describe('signMessage', function () {
+        it('should throw an error because it is not supported', function () {
+            expect(_ => {
                 keyring.signMessage()
             }).to.throw('Not supported on this device')
         })
     })
 
-    describe('signPersonalMessage', function() {
-        it('should call TrezorConnect.ethereumSignMessage', async function(){
-            
+    describe('signPersonalMessage', function () {
+        it('should call TrezorConnect.ethereumSignMessage', async function () {
+
             chai.spy.on(TrezorConnect, 'ethereumSignMessage')
-            
+
             keyring.path[fakeAccounts[0]] = 0
 
-            try { 
+            try {
                 await keyring.signPersonalMessage(fakeAccounts[0], 'some msg')
-            } catch(e){
+            } catch (e) {
                // because we're trying to open the trezor popup in node
                // it will throw an exception
             } finally {
@@ -300,19 +296,19 @@ describe('TrezorKeyring', function () {
     })
 
     describe('signTypedData', function () {
-        it('should throw an error because it is not supported', function(){
-            expect( _ => {
+        it('should throw an error because it is not supported', function () {
+            expect(_ => {
                 keyring.signTypedData()
             }).to.throw('Not supported on this device')
         })
     })
-    
+
     describe('exportAccount', function () {
-        it('should throw an error because it is not supported', function(){
-            expect( _ => {
+        it('should throw an error because it is not supported', function () {
+            expect(_ => {
                 keyring.exportAccount()
             }).to.throw('Not supported on this device')
         })
-    })   
+    })
 
 })
