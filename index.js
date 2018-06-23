@@ -35,6 +35,7 @@ class TrezorKeyring extends EventEmitter {
     this.hdPath = opts.hdPath || hdPathString
     this.accounts = opts.accounts || []
     this.page = opts.page || 0
+    this.perPage = opts.perPage || 5
     this.paths = opts.paths || {};
     return Promise.resolve()
   }
@@ -70,7 +71,7 @@ class TrezorKeyring extends EventEmitter {
       return this.unlock()
         .then(_ => {
           const from = this.unlockedAccount
-          const to = from + 1
+          const to = from + n
           this.accounts = []
 
           for (let i = from; i < to; i++) {
@@ -86,7 +87,15 @@ class TrezorKeyring extends EventEmitter {
     })
   }
 
-  getPage (increment) {
+  getNextPage(){
+    return this.__getPage(1)
+  }
+  
+  getPreviousPage(){
+    return this.__getPage(-1)
+  }
+
+  __getPage (increment) {
 
     this.page += increment;
     
@@ -122,7 +131,7 @@ class TrezorKeyring extends EventEmitter {
   }
 
   // tx is an instance of the ethereumjs-transaction class.
-  async signTransaction (address, tx) {
+  signTransaction (address, tx) {
 
       return new Promise((resolve, reject) => {
 
@@ -160,39 +169,42 @@ class TrezorKeyring extends EventEmitter {
      })
   }
 
-  async signMessage (withAccount, data) {
+  signMessage (withAccount, data) {
     throw new Error('Not supported on this device')
   }
 
   // For personal_sign, we need to prefix the message:
-  async signPersonalMessage (withAccount, message) {
+  signPersonalMessage (withAccount, message) {
+    return new Promise((resolve, reject) => {
+      TrezorConnect.ethereumSignMessage(this._pathFromAddress(withAccount), message, response => {
+        if (response.success) {
 
-    TrezorConnect.ethereumSignMessage(this._pathFromAddress(withAccount), message, response => {
-      if (response.success) {
+            const signature = this._personalToRawSig(response.signature)
+            const addressSignedWith = sigUtil.recoverPersonalSignature({data: message, sig: signature})
+            const correctAddress = ethUtil.toChecksumAddress(withAccount)
+            if (addressSignedWith !== correctAddress) {
+              throw new Error('signature doesnt match the right address')
+            }
+            resolve(signature)
 
-          const signature = this._personalToRawSig(response.signature)
-          const addressSignedWith = sigUtil.recoverPersonalSignature({data: message, sig: signature})
-          const correctAddress = ethUtil.toChecksumAddress(withAccount)
-          if (addressSignedWith !== correctAddress) {
-            throw new Error('signature doesnt match the right address')
-          }
-          return signature
+        } else {
+          throw new Error(response.error || 'Unknown error')
+        }
 
-      } else {
-        throw new Error(response.error || 'Unknown error')
-      }
-
-    }, TREZOR_MIN_FIRMWARE_VERSION)
+      }, TREZOR_MIN_FIRMWARE_VERSION)
+    })
   }
 
-  async signTypedData (withAccount, typedData) {
+  signTypedData (withAccount, typedData) {
     // Waiting on trezor to enable this
     throw new Error('Not supported on this device')
   }
 
-  async exportAccount (address) {
+  exportAccount (address) {
     throw new Error('Not supported on this device')
   }
+
+  /* PRIVATE METHODS */
 
   _padLeftEven (hex) {
     return hex.length % 2 !== 0 ? `0${hex}` : hex
