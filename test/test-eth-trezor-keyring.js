@@ -49,7 +49,6 @@ describe('TrezorKeyring', function () {
     beforeEach(async function () {
         keyring = new TrezorKeyring()
         keyring.hdk = fakeHdKey
-        keyring.path = {}
     })
 
     describe('Keyring.type', function () {
@@ -255,9 +254,6 @@ describe('TrezorKeyring', function () {
         it('should call TrezorConnect.ethereumSignTx', async function () {
 
             chai.spy.on(TrezorConnect, 'ethereumSignTx')
-
-            keyring.path[fakeAccounts[0]] = 0
-
             try {
                 await keyring.signTransaction(fakeAccounts[0], fakeTx)
             } catch (e) {
@@ -281,9 +277,6 @@ describe('TrezorKeyring', function () {
         it('should call TrezorConnect.ethereumSignMessage', async function () {
 
             chai.spy.on(TrezorConnect, 'ethereumSignMessage')
-
-            keyring.path[fakeAccounts[0]] = 0
-
             try {
                 await keyring.signPersonalMessage(fakeAccounts[0], 'some msg')
             } catch (e) {

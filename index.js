@@ -28,6 +28,9 @@ class TrezorKeyring extends EventEmitter {
       hdPath: this.hdPath,
       accounts: this.accounts,
       page: this.page,
+      paths: this.paths,
+      perPage: this.perPage,
+      unlockedAccount: this.unlockedAccount,
     })
   }
 
@@ -115,7 +118,7 @@ class TrezorKeyring extends EventEmitter {
               balance: 0,
               index: i,
             })
-            this.path[address] = i
+            this.paths[address] = i
 
           }
           resolve(accounts)
@@ -223,7 +226,7 @@ class TrezorKeyring extends EventEmitter {
   }
 
   _pathFromAddress (address) {
-    const index = this.path[address]
+    const index = this.paths[address]
     return `${this.hdPath}/${index}`
   }
 
