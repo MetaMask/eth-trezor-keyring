@@ -43,6 +43,9 @@ const fakeTx = new EthereumTx({
     // EIP 155 chainId - mainnet: 1, ropsten: 3
     chainId: 1
 });
+
+const TREZOR_MIN_FIRMWARE_VERSION = '1.5.2'
+
  
 chai.use(spies);
 
@@ -123,9 +126,16 @@ describe('TrezorKeyring', function () {
         
         chai.spy.on(TrezorConnect, 'getXPubKey');
 
-        it('should call TrezorConnect.getXPubKey if we dont have a public key', function(){
+        it('should call TrezorConnect.getXPubKey if we dont have a public key', async function(){
             keyring.hdk = new HDKey()
-            expect(TrezorConnect.getXPubKey).to.have.been.called;
+            try { 
+                await keyring.unlock()
+            } catch(e){
+               // because we're trying to open the trezor popup in node
+               // it will throw an exception
+            } finally {
+                expect(TrezorConnect.getXPubKey).to.have.been.called();
+            }           
         })
     })
 
@@ -196,43 +206,21 @@ describe('TrezorKeyring', function () {
     })
 
     describe('signTransaction', function() {
-        //TrezorConnect.ethereumSignTx should be called with
-        //param 1
-        //param 2
-        //param 3
-        chai.spy.on(TrezorConnect, 'ethereumSignTx');
-
-        it('should call TrezorConnect.ethereumSignTx with the right params', function(){
-            //Fake the path before signing the transaction
-            keyring.path = {};
-            keyring.path[`${fakeAccounts[0]}`] =  `${keyring.hdPath}/0`;
-
-            keyring.signTransaction (fakeAccounts[0], fakeTx).catch(e => {
-                console.log('window blocked error');
-            })
+        it('should call TrezorConnect.ethereumSignTx', async function(){
             
-            const expectedParams = {
-                address: fakeAccounts[0],
-                nonce: fakeTx.nonce,
-                gasPrice: fakeTx.gasPrice,
-                gasLimit: fakeTx.gasLimit,
-                to: fakeTx.to,
-                value: fakeTx.value,
-                data: fakeTx.data,
-                chainId: fakeTx._chainId
-            };
+            chai.spy.on(TrezorConnect, 'ethereumSignTx')
 
-            expect(TrezorConnect.ethereumSignTx).to.have.been.called.with(
-                expectedParams.address,
-                expectedParams.nonce,
-                expectedParams.gasPrice,
-                expectedParams.gasLimit,
-                expectedParams.to,
-                expectedParams.value,
-                expectedParams.data,
-                expectedParams.chainId
-            )
+            keyring.path = {}
+            keyring.path[fakeAccounts[0]] = 0
 
+            try { 
+                await keyring.signTransaction(fakeAccounts[0], fakeTx)
+            } catch(e){
+               // because we're trying to open the trezor popup in node
+               // it will throw an exception
+            } finally {
+                expect(TrezorConnect.ethereumSignTx).to.have.been.called()
+            }
         })
     })
 
@@ -245,7 +233,22 @@ describe('TrezorKeyring', function () {
     })
 
     describe('signPersonalMessage', function() {
-         
+        it('should call TrezorConnect.ethereumSignMessage', async function(){
+            
+            chai.spy.on(TrezorConnect, 'ethereumSignMessage');
+            
+            keyring.path = {}
+            keyring.path[fakeAccounts[0]] = 0
+
+            try { 
+                await keyring.signPersonalMessage(fakeAccounts[0], 'some msg')
+            } catch(e){
+               // because we're trying to open the trezor popup in node
+               // it will throw an exception
+            } finally {
+                expect(TrezorConnect.ethereumSignMessage).to.have.been.called()
+            }
+        })
     })
 
     describe('signTypedData', function () {
