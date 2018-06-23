@@ -35,6 +35,7 @@ class TrezorKeyring extends EventEmitter {
     this.hdPath = opts.hdPath || hdPathString
     this.accounts = opts.accounts || []
     this.page = opts.page || 0
+    this.perPage = opts.perPage || 5
     this.paths = opts.paths || {};
     return Promise.resolve()
   }
@@ -86,7 +87,15 @@ class TrezorKeyring extends EventEmitter {
     })
   }
 
-  getPage (increment) {
+  getNextPage(){
+    return this.__getPage(1)
+  }
+  
+  getPreviousPage(){
+    return this.__getPage(-1)
+  }
+
+  __getPage (increment) {
 
     this.page += increment;
     

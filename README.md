@@ -25,7 +25,9 @@ there are a few others:
 
 - **setAccountToUnlock** : the index of the account that you want to unlock in order to use with the signTransaction and signPersonalMessage methods
 
-- **getPage** : returns an ordered set of accounts from the Trezor account 
+- **getNextPage** : returns the next ordered set of accounts from the Trezor account based on the current page
+
+- **getPreviousPage** : returns the previous ordered set of accounts from the Trezor account based on the current page
 
 Testing
 -------
