@@ -10,6 +10,7 @@ const keyringType = 'Trezor Hardware'
 const pathBase = 'm'
 const TREZOR_MIN_FIRMWARE_VERSION = '1.5.2'
 const MAX_INDEX = 1000
+const DELAY_BETWEEN_POPUPS = 1000
 
 class TrezorKeyring extends EventEmitter {
   constructor (opts = {}) {
@@ -45,7 +46,7 @@ class TrezorKeyring extends EventEmitter {
 
   unlock () {
 
-    if (this.hdk.publicKey) return Promise.resolve()
+    if (this.hdk.publicKey) return Promise.resolve('already unlocked')
 
     return new Promise((resolve, reject) => {
       TrezorConnect.getXPubKey(
@@ -54,7 +55,7 @@ class TrezorKeyring extends EventEmitter {
           if (response.success) {
             this.hdk.publicKey = new Buffer(response.publicKey, 'hex')
             this.hdk.chainCode = new Buffer(response.chainCode, 'hex')
-            resolve()
+            resolve('just unlocked')
           } else {
             reject(response.error || 'Unknown error')
           }
@@ -71,7 +72,7 @@ class TrezorKeyring extends EventEmitter {
   addAccounts (n = 1) {
 
     return new Promise((resolve, reject) => {
-      return this.unlock()
+      this.unlock()
         .then(_ => {
           const from = this.unlockedAccount
           const to = from + n
@@ -103,7 +104,7 @@ class TrezorKeyring extends EventEmitter {
     this.page += increment
 
     return new Promise((resolve, reject) => {
-      return this.unlock()
+      this.unlock()
         .then(_ => {
 
           const from = this.page === 0 ? 0 : (this.page - 1) * this.perPage
@@ -137,39 +138,45 @@ class TrezorKeyring extends EventEmitter {
   signTransaction (address, tx) {
 
       return new Promise((resolve, reject) => {
-        return this.unlock()
-          .then(_ => {
-            TrezorConnect.ethereumSignTx(
-              this._pathFromAddress(address),
-              this._normalize(tx.nonce),
-              this._normalize(tx.gasPrice),
-              this._normalize(tx.gasLimit),
-              this._normalize(tx.to),
-              this._normalize(tx.value),
-              this._normalize(tx.data),
-              tx._chainId,
-              response => {
-                if (response.success) {
+        this.unlock()
+          .then(status => {
+            setTimeout(_ => {
+              TrezorConnect.ethereumSignTx(
+                this._pathFromAddress(address),
+                this._normalize(tx.nonce),
+                this._normalize(tx.gasPrice),
+                this._normalize(tx.gasLimit),
+                this._normalize(tx.to),
+                this._normalize(tx.value),
+                this._normalize(tx.data),
+                tx._chainId,
+                response => {
+                  if (response.success) {
 
-                  tx.v = `0x${response.v.toString(16)}`
-                  tx.r = `0x${response.r}`
-                  tx.s = `0x${response.s}`
+                    tx.v = `0x${response.v.toString(16)}`
+                    tx.r = `0x${response.r}`
+                    tx.s = `0x${response.s}`
 
-                  const signedTx = new Transaction(tx)
+                    const signedTx = new Transaction(tx)
 
-                  const addressSignedWith = ethUtil.toChecksumAddress(`0x${signedTx.from.toString('hex')}`)
-                  const correctAddress = ethUtil.toChecksumAddress(address)
-                  if (addressSignedWith !== correctAddress) {
-                    throw new Error('signature doesnt match the right address')
+                    const addressSignedWith = ethUtil.toChecksumAddress(`0x${signedTx.from.toString('hex')}`)
+                    const correctAddress = ethUtil.toChecksumAddress(address)
+                    if (addressSignedWith !== correctAddress) {
+                      reject('signature doesnt match the right address')
+                    }
+
+                    resolve(signedTx)
+
+                  } else {
+                      reject(response.error || 'Unknown error')
                   }
+                },
+                TREZOR_MIN_FIRMWARE_VERSION)
 
-                  resolve(signedTx)
+            // This is necessary to avoid popup collision
+            // between the unlock & sign trezor popups
+            }, status === 'just unlocked' ? DELAY_BETWEEN_POPUPS : 0)
 
-                } else {
-                    throw new Error(response.error || 'Unknown error')
-                }
-              },
-              TREZOR_MIN_FIRMWARE_VERSION)
         })
       })
   }
@@ -181,24 +188,28 @@ class TrezorKeyring extends EventEmitter {
   // For personal_sign, we need to prefix the message:
   signPersonalMessage (withAccount, message) {
     return new Promise((resolve, reject) => {
-      return this.unlock()
-          .then(_ => {
-            TrezorConnect.ethereumSignMessage(this._pathFromAddress(withAccount), message, response => {
-              if (response.success) {
+      this.unlock()
+          .then(status => {
+            setTimeout(_ => {
+              TrezorConnect.ethereumSignMessage(this._pathFromAddress(withAccount), message, response => {
+                if (response.success) {
 
-                  const signature = this._personalToRawSig(response.signature)
-                  const addressSignedWith = sigUtil.recoverPersonalSignature({data: message, sig: signature})
-                  const correctAddress = ethUtil.toChecksumAddress(withAccount)
-                  if (addressSignedWith !== correctAddress) {
-                    throw new Error('signature doesnt match the right address')
-                  }
-                  resolve(signature)
+                    const signature = this._personalToRawSig(response.signature)
+                    const addressSignedWith = sigUtil.recoverPersonalSignature({data: message, sig: signature})
+                    const correctAddress = ethUtil.toChecksumAddress(withAccount)
+                    if (addressSignedWith !== correctAddress) {
+                      reject('signature doesnt match the right address')
+                    }
+                    resolve(signature)
 
-              } else {
-                throw new Error(response.error || 'Unknown error')
-              }
+                } else {
+                  reject(response.error || 'Unknown error')
+                }
 
-            }, TREZOR_MIN_FIRMWARE_VERSION)
+              }, TREZOR_MIN_FIRMWARE_VERSION)
+            // This is necessary to avoid popup collision
+            // between the unlock & sign trezor popups
+            }, status === 'just unlocked' ? DELAY_BETWEEN_POPUPS : 0)
         })
     })
   }
@@ -233,7 +244,7 @@ class TrezorKeyring extends EventEmitter {
   _pathFromAddress (address) {
     const checksummedAddress = ethUtil.toChecksumAddress(address)
     let index = this.paths[checksummedAddress]
-    if (!index) {
+    if (typeof index === 'undefined') {
       for (let i = 0; i < MAX_INDEX; i++) {
         if (checksummedAddress === this._addressFromIndex(pathBase, i)) {
           index = i
@@ -242,7 +253,7 @@ class TrezorKeyring extends EventEmitter {
       }
     }
 
-    if (!index) {
+    if (typeof index === 'undefined') {
       throw new Error('Unknown address')
     }
     return `${this.hdPath}/${index}`
