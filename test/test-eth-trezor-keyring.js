@@ -49,7 +49,6 @@ describe('TrezorKeyring', function () {
     beforeEach(async function () {
         keyring = new TrezorKeyring()
         keyring.hdk = fakeHdKey
-        keyring.path = {}
     })
 
     describe('Keyring.type', function () {
@@ -252,20 +251,16 @@ describe('TrezorKeyring', function () {
     })
 
     describe('signTransaction', function () {
-        it('should call TrezorConnect.ethereumSignTx', async function () {
+        it('should call TrezorConnect.ethereumSignTx', function (done) {
 
             chai.spy.on(TrezorConnect, 'ethereumSignTx')
 
-            keyring.path[fakeAccounts[0]] = 0
-
-            try {
-                await keyring.signTransaction(fakeAccounts[0], fakeTx)
-            } catch (e) {
-               // because we're trying to open the trezor popup in node
-               // it will throw an exception
-            } finally {
+            keyring.signTransaction(fakeAccounts[0], fakeTx).catch(e => {
+                // we expect this to be rejected because
+                // we are trying to open a popup from node
                 expect(TrezorConnect.ethereumSignTx).to.have.been.called()
-            }
+                done()
+            })
         })
     })
 
@@ -278,20 +273,15 @@ describe('TrezorKeyring', function () {
     })
 
     describe('signPersonalMessage', function () {
-        it('should call TrezorConnect.ethereumSignMessage', async function () {
+        it('should call TrezorConnect.ethereumSignMessage', function (done) {
 
             chai.spy.on(TrezorConnect, 'ethereumSignMessage')
-
-            keyring.path[fakeAccounts[0]] = 0
-
-            try {
-                await keyring.signPersonalMessage(fakeAccounts[0], 'some msg')
-            } catch (e) {
-               // because we're trying to open the trezor popup in node
-               // it will throw an exception
-            } finally {
+            keyring.signPersonalMessage(fakeAccounts[0], 'some msg').catch(e => {
+                // we expect this to be rejected because
+                // we are trying to open a popup from node
                 expect(TrezorConnect.ethereumSignMessage).to.have.been.called()
-            }
+                done()
+            })
         })
     })
 
