@@ -9,6 +9,7 @@ const hdPathString = `m/44'/60'/0'/0`
 const keyringType = 'Trezor Hardware'
 const pathBase = 'm'
 const TREZOR_MIN_FIRMWARE_VERSION = '1.5.2'
+const MAX_INDEX = 1000
 
 class TrezorKeyring extends EventEmitter {
   constructor (opts = {}) {
@@ -39,7 +40,6 @@ class TrezorKeyring extends EventEmitter {
     this.accounts = opts.accounts || []
     this.page = opts.page || 0
     this.perPage = opts.perPage || 5
-    this.paths = opts.paths || {}
     return Promise.resolve()
   }
 
@@ -118,7 +118,7 @@ class TrezorKeyring extends EventEmitter {
               balance: 0,
               index: i,
             })
-            this.paths[address] = i
+            this.paths[ethUtil.toChecksumAddress(address)] = i
 
           }
           resolve(accounts)
@@ -137,39 +137,41 @@ class TrezorKeyring extends EventEmitter {
   signTransaction (address, tx) {
 
       return new Promise((resolve, reject) => {
+        return this.unlock()
+          .then(_ => {
+            TrezorConnect.ethereumSignTx(
+              this._pathFromAddress(address),
+              this._normalize(tx.nonce),
+              this._normalize(tx.gasPrice),
+              this._normalize(tx.gasLimit),
+              this._normalize(tx.to),
+              this._normalize(tx.value),
+              this._normalize(tx.data),
+              tx._chainId,
+              response => {
+                if (response.success) {
 
-        TrezorConnect.ethereumSignTx(
-          this._pathFromAddress(address),
-          this._normalize(tx.nonce),
-          this._normalize(tx.gasPrice),
-          this._normalize(tx.gasLimit),
-          this._normalize(tx.to),
-          this._normalize(tx.value),
-          this._normalize(tx.data),
-          tx._chainId,
-          response => {
-            if (response.success) {
+                  tx.v = `0x${response.v.toString(16)}`
+                  tx.r = `0x${response.r}`
+                  tx.s = `0x${response.s}`
 
-              tx.v = `0x${response.v.toString(16)}`
-              tx.r = `0x${response.r}`
-              tx.s = `0x${response.s}`
+                  const signedTx = new Transaction(tx)
 
-              const signedTx = new Transaction(tx)
+                  const addressSignedWith = ethUtil.toChecksumAddress(`0x${signedTx.from.toString('hex')}`)
+                  const correctAddress = ethUtil.toChecksumAddress(address)
+                  if (addressSignedWith !== correctAddress) {
+                    throw new Error('signature doesnt match the right address')
+                  }
 
-              const addressSignedWith = ethUtil.toChecksumAddress(`0x${signedTx.from.toString('hex')}`)
-              const correctAddress = ethUtil.toChecksumAddress(address)
-              if (addressSignedWith !== correctAddress) {
-                throw new Error('signature doesnt match the right address')
-              }
+                  resolve(signedTx)
 
-              resolve(signedTx)
-
-            } else {
-                throw new Error(response.error || 'Unknown error')
-            }
-          },
-          TREZOR_MIN_FIRMWARE_VERSION)
-     })
+                } else {
+                    throw new Error(response.error || 'Unknown error')
+                }
+              },
+              TREZOR_MIN_FIRMWARE_VERSION)
+        })
+      })
   }
 
   signMessage (withAccount, data) {
@@ -179,22 +181,25 @@ class TrezorKeyring extends EventEmitter {
   // For personal_sign, we need to prefix the message:
   signPersonalMessage (withAccount, message) {
     return new Promise((resolve, reject) => {
-      TrezorConnect.ethereumSignMessage(this._pathFromAddress(withAccount), message, response => {
-        if (response.success) {
+      return this.unlock()
+          .then(_ => {
+            TrezorConnect.ethereumSignMessage(this._pathFromAddress(withAccount), message, response => {
+              if (response.success) {
 
-            const signature = this._personalToRawSig(response.signature)
-            const addressSignedWith = sigUtil.recoverPersonalSignature({data: message, sig: signature})
-            const correctAddress = ethUtil.toChecksumAddress(withAccount)
-            if (addressSignedWith !== correctAddress) {
-              throw new Error('signature doesnt match the right address')
-            }
-            resolve(signature)
+                  const signature = this._personalToRawSig(response.signature)
+                  const addressSignedWith = sigUtil.recoverPersonalSignature({data: message, sig: signature})
+                  const correctAddress = ethUtil.toChecksumAddress(withAccount)
+                  if (addressSignedWith !== correctAddress) {
+                    throw new Error('signature doesnt match the right address')
+                  }
+                  resolve(signature)
 
-        } else {
-          throw new Error(response.error || 'Unknown error')
-        }
+              } else {
+                throw new Error(response.error || 'Unknown error')
+              }
 
-      }, TREZOR_MIN_FIRMWARE_VERSION)
+            }, TREZOR_MIN_FIRMWARE_VERSION)
+        })
     })
   }
 
@@ -226,7 +231,20 @@ class TrezorKeyring extends EventEmitter {
   }
 
   _pathFromAddress (address) {
-    const index = this.paths[address]
+    const checksummedAddress = ethUtil.toChecksumAddress(address)
+    let index = this.paths[checksummedAddress]
+    if (!index) {
+      for (let i = 0; i < MAX_INDEX; i++) {
+        if (checksummedAddress === this._addressFromIndex(pathBase, i)) {
+          index = i
+          break
+        }
+      }
+    }
+
+    if (!index) {
+      throw new Error('Unknown address')
+    }
     return `${this.hdPath}/${index}`
   }
 
