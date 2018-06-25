@@ -4,7 +4,6 @@ const {expect} = chai
 const EthereumTx = require('ethereumjs-tx')
 const assert = require('assert')
 const HDKey = require('hdkey')
-
 const TrezorConnect = require('../trezor-connect.js')
 
 const TrezorKeyring = require('../')
