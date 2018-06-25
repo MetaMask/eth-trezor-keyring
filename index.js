@@ -196,10 +196,11 @@ class TrezorKeyring extends EventEmitter {
 
                     const signature = `0x${response.signature}`
                     const addressSignedWith = sigUtil.recoverPersonalSignature({data: message, sig: signature})
-                    const correctAddress = ethUtil.toChecksumAddress(withAccount)
-                    if (addressSignedWith !== correctAddress) {
+
+                    if (ethUtil.toChecksumAddress(addressSignedWith) !== ethUtil.toChecksumAddress(withAccount)) {
                       reject('signature doesnt match the right address')
                     }
+
                     resolve(signature)
 
                 } else {
