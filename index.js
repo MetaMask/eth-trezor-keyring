@@ -4,7 +4,6 @@ const sigUtil = require('eth-sig-util')
 const Transaction = require('ethereumjs-tx')
 const HDKey = require('hdkey')
 const TrezorConnect = require('./trezor-connect.js')
-
 const hdPathString = `m/44'/60'/0'/0`
 const keyringType = 'Trezor Hardware'
 const pathBase = 'm'
@@ -191,15 +190,17 @@ class TrezorKeyring extends EventEmitter {
       this.unlock()
           .then(status => {
             setTimeout(_ => {
-              TrezorConnect.ethereumSignMessage(this._pathFromAddress(withAccount), message, response => {
+              const humanReadableMsg = this._toAscii(message)
+              TrezorConnect.ethereumSignMessage(this._pathFromAddress(withAccount), humanReadableMsg, response => {
                 if (response.success) {
 
-                    const signature = this._personalToRawSig(response.signature)
+                    const signature = `0x${response.signature}`
                     const addressSignedWith = sigUtil.recoverPersonalSignature({data: message, sig: signature})
-                    const correctAddress = ethUtil.toChecksumAddress(withAccount)
-                    if (addressSignedWith !== correctAddress) {
+
+                    if (ethUtil.toChecksumAddress(addressSignedWith) !== ethUtil.toChecksumAddress(withAccount)) {
                       reject('signature doesnt match the right address')
                     }
+
                     resolve(signature)
 
                 } else {
@@ -259,13 +260,18 @@ class TrezorKeyring extends EventEmitter {
     return `${this.hdPath}/${index}`
   }
 
-  _personalToRawSig (signature) {
-    var v = signature['v'] - 27
-    v = v.toString(16)
-    if (v.length < 2) {
-      v = '0' + v
-    }
-    return '0x' + signature['r'] + signature['s'] + v
+  _toAscii (hex) {
+      let str = ''
+      let i = 0; const l = hex.length
+      if (hex.substring(0, 2) === '0x') {
+          i = 2
+      }
+      for (; i < l; i += 2) {
+          const code = parseInt(hex.substr(i, 2), 16)
+          str += String.fromCharCode(code)
+      }
+
+      return str
   }
 }
 
