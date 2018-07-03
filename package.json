@@ -10,14 +10,20 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/brunobar79/eth-trezor-keyring.git"
+    "url": "git+https://github.com/metamask/eth-trezor-keyring.git"
   },
+  "keywords": [
+    "ethereum",
+    "keyring",
+    "trezor",
+    "metamask"
+  ],
   "author": "Bruno Barbieri",
-  "license": "MIT",
+  "license": "ISC",
   "bugs": {
-    "url": "https://github.com/brunobar79/eth-trezor-keyring/issues"
+    "url": "https://github.com/metamask/eth-trezor-keyring/issues"
   },
-  "homepage": "https://github.com/brunobar79/eth-trezor-keyring#readme",
+  "homepage": "https://github.com/metamask/eth-trezor-keyring#readme",
   "dependencies": {
     "eth-sig-util": "^1.4.2",
     "ethereumjs-tx": "^1.3.4",
