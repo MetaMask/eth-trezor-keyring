@@ -13,7 +13,7 @@ device. However there are a number of differences:
   is attached.
 - It does not support the `signMessage`, `signTypedData` or `exportAccount`
   methods, because TREZOR devices do not support these operations.
-- The method `signPersonalMessage` will be enabled in the next version of the TREZOR firmware > 2.0.7 (Model T) and 1.6.2+ on TREZOR ONE
+- The method `signPersonalMessage` requires the firmware version 2.0.7+ for TREZOR Model T and 1.6.2+ on TREZOR ONE
 
 Using
 -----
