@@ -109,6 +109,13 @@ describe('TrezorKeyring', function () {
         })
     })
 
+
+    describe('isUnlocked', function () {
+        it('should return true if we have a public key', function () {
+            assert.equal(keyring.isUnlocked(), true)
+        })
+    })
+
     describe('unlock', function () {
         it('should resolve if we have a public key', function (done) {
             keyring.unlock().then(_ => {
@@ -170,6 +177,50 @@ describe('TrezorKeyring', function () {
                     done()
                 })
             })
+        })
+    })
+
+    describe('removeAccount', function () {
+        describe('if the account exists', function () {
+            it('should remove that account', function (done) {
+                keyring.setAccountToUnlock(0)
+                keyring.addAccounts()
+                .then(async (accounts) => {
+                    assert.equal(accounts.length, 1)
+                    keyring.removeAccount(fakeAccounts[0])
+                    const accountsAfterRemoval = await keyring.getAccounts()
+                    assert.equal(accountsAfterRemoval.length, 0)
+                    done()
+                })
+            })
+        })
+
+        describe('if the account does not exist', function () {
+            it('should throw an error', function () {
+                const unexistingAccount = '0x0000000000000000000000000000000000000000'
+                expect(_ => {
+                   keyring.removeAccount(unexistingAccount)
+                }).to.throw(`Address ${unexistingAccount} not found in this keyring`)
+            })
+        })
+    })
+
+    describe('getFirstPage', function () {
+        it('should set the currentPage to 1', async function () {
+            await keyring.getFirstPage()
+            assert.equal(keyring.page, 1)
+        })
+
+        it('should return the list of accounts for current page', async function () {
+
+            const accounts = await keyring.getFirstPage()
+
+            expect(accounts.length, keyring.perPage)
+            expect(accounts[0].address, fakeAccounts[0])
+            expect(accounts[1].address, fakeAccounts[1])
+            expect(accounts[2].address, fakeAccounts[2])
+            expect(accounts[3].address, fakeAccounts[3])
+            expect(accounts[4].address, fakeAccounts[4])
         })
     })
 
@@ -297,6 +348,22 @@ describe('TrezorKeyring', function () {
             expect(_ => {
                 keyring.exportAccount()
             }).to.throw('Not supported on this device')
+        })
+    })
+
+    describe('forgetDevice', function () {
+        it('should clear the content of the keyring', async function () {
+            // Add an account
+            keyring.setAccountToUnlock(0)
+            await keyring.addAccounts()
+
+            // Wipe the keyring
+            keyring.forgetDevice()
+
+            const accounts = await keyring.getAccounts()
+
+            assert.equal(keyring.isUnlocked(), false)
+            assert.equal(accounts.length, 0)
         })
     })
 

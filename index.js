@@ -44,7 +44,7 @@ class TrezorKeyring extends EventEmitter {
   }
 
   isUnlocked () {
-    return !!this.hdk.publicKey
+    return !!(this.hdk && this.hdk.publicKey)
   }
 
   unlock () {
@@ -246,7 +246,6 @@ class TrezorKeyring extends EventEmitter {
     this.accounts = []
     this.hdk = new HDKey()
     this.page = 0
-    this.perPage = 5
     this.unlockedAccount = 0
     this.paths = {}
   }
