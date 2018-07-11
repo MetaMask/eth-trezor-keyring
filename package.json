@@ -6,7 +6,7 @@
   "scripts": {
     "test": "mocha",
     "lint": "./node_modules/.bin/eslint . --ext .js",
-    "lint::fix": "./node_modules/.bin/eslint --fix . --ext .js"
+    "lint:fix": "./node_modules/.bin/eslint --fix . --ext .js"
   },
   "repository": {
     "type": "git",
