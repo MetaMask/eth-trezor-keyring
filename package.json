@@ -1,12 +1,12 @@
 {
   "name": "eth-trezor-keyring",
-  "version": "0.0.1",
+  "version": "0.1.0",
   "description": "A MetaMask compatible keyring, for trezor hardware wallets",
   "main": "index.js",
   "scripts": {
     "test": "mocha",
     "lint": "./node_modules/.bin/eslint . --ext .js",
-    "lint::fix": "./node_modules/.bin/eslint --fix . --ext .js"
+    "lint:fix": "./node_modules/.bin/eslint --fix . --ext .js"
   },
   "repository": {
     "type": "git",

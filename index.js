@@ -43,9 +43,13 @@ class TrezorKeyring extends EventEmitter {
     return Promise.resolve()
   }
 
+  isUnlocked () {
+    return !!(this.hdk && this.hdk.publicKey)
+  }
+
   unlock () {
 
-    if (this.hdk.publicKey) return Promise.resolve('already unlocked')
+    if (this.isUnlocked()) return Promise.resolve('already unlocked')
 
     return new Promise((resolve, reject) => {
       TrezorConnect.getXPubKey(
@@ -90,6 +94,11 @@ class TrezorKeyring extends EventEmitter {
     })
   }
 
+  getFirstPage () {
+    this.page = 0
+    return this.__getPage(1)
+  }
+
   getNextPage () {
     return this.__getPage(1)
   }
@@ -102,11 +111,13 @@ class TrezorKeyring extends EventEmitter {
 
     this.page += increment
 
+    if (this.page <= 0) { this.page = 1 }
+
     return new Promise((resolve, reject) => {
       this.unlock()
         .then(_ => {
 
-          const from = this.page === 0 ? 0 : (this.page - 1) * this.perPage
+          const from = (this.page - 1) * this.perPage
           const to = from + this.perPage
 
           const accounts = []
@@ -115,7 +126,7 @@ class TrezorKeyring extends EventEmitter {
             const address = this._addressFromIndex(pathBase, i)
              accounts.push({
               address: address,
-              balance: 0,
+              balance: null,
               index: i,
             })
             this.paths[ethUtil.toChecksumAddress(address)] = i
@@ -131,6 +142,13 @@ class TrezorKeyring extends EventEmitter {
 
   getAccounts () {
     return Promise.resolve(this.accounts.slice())
+  }
+
+  removeAccount (address) {
+    if (!this.accounts.map(a => a.toLowerCase()).includes(address.toLowerCase())) {
+      throw new Error(`Address ${address} not found in this keyring`)
+    }
+    this.accounts = this.accounts.filter(a => a.toLowerCase() !== address.toLowerCase())
   }
 
   // tx is an instance of the ethereumjs-transaction class.
@@ -222,6 +240,14 @@ class TrezorKeyring extends EventEmitter {
 
   exportAccount (address) {
     throw new Error('Not supported on this device')
+  }
+
+  forgetDevice () {
+    this.accounts = []
+    this.hdk = new HDKey()
+    this.page = 0
+    this.unlockedAccount = 0
+    this.paths = {}
   }
 
   /* PRIVATE METHODS */
