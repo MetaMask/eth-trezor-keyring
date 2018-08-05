@@ -1,6 +1,5 @@
 const { EventEmitter } = require('events')
 const ethUtil = require('ethereumjs-util')
-const sigUtil = require('eth-sig-util')
 const Transaction = require('ethereumjs-tx')
 const HDKey = require('hdkey')
 const TrezorConnect = require('trezor-connect').default
@@ -51,9 +50,9 @@ class TrezorKeyring extends EventEmitter {
     return new Promise((resolve, reject) => {
       TrezorConnect.getPublicKey({
           path: this.hdPath,
-          coin: "ETH",
+          coin: 'ETH',
         }).then(response => {
-          if(response.success){
+          if (response.success) {
             this.hdk.publicKey = new Buffer(response.payload.publicKey, 'hex')
             this.hdk.chainCode = new Buffer(response.payload.chainCode, 'hex')
             resolve('just unlocked')
@@ -165,10 +164,10 @@ class TrezorKeyring extends EventEmitter {
                   chanId: tx._chainId,
                   nonce: this._normalize(tx.nonce),
                   gasLimit: this._normalize(tx.gasLimit),
-                  gasPrice: this._normalize(tx.gasPrice)
-                }
-              }).then( response => {
-                if(response.success){
+                  gasPrice: this._normalize(tx.gasPrice),
+                },
+              }).then(response => {
+                if (response.success) {
                   tx.v = response.payload.v
                   tx.r = response.payload.r
                   tx.s = response.payload.s
@@ -212,13 +211,13 @@ class TrezorKeyring extends EventEmitter {
               const humanReadableMsg = this._toAscii(message)
               TrezorConnect.ethereumSignMessage({
                 path: this._pathFromAddress(withAccount),
-                message: humanReadableMsg
-              }).then (response => {
-                if(response.success){
-                  if (response.address !== ethUtil.toChecksumAddress(withAccount)) {
+                message: humanReadableMsg,
+              }).then(response => {
+                if (response.success) {
+                  if (response.payload.address !== ethUtil.toChecksumAddress(withAccount)) {
                     reject('signature doesnt match the right address')
                   }
-                  const signature = `0x${response.signature}`
+                  const signature = `0x${response.payload.signature}`
                   resolve(signature)
                 } else {
                   reject(response.payload && response.payload.error || 'Unknown error')
