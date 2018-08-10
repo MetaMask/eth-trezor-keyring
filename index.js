@@ -161,7 +161,7 @@ class TrezorKeyring extends EventEmitter {
                   to: this._normalize(tx.to),
                   value: this._normalize(tx.value),
                   data: this._normalize(tx.data),
-                  chanId: tx._chainId,
+                  chainId: tx._chainId,
                   nonce: this._normalize(tx.nonce),
                   gasLimit: this._normalize(tx.gasLimit),
                   gasPrice: this._normalize(tx.gasPrice),
