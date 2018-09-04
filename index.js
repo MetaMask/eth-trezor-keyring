@@ -194,7 +194,10 @@ class TrezorKeyring extends EventEmitter {
             // between the unlock & sign trezor popups
             }, status === 'just unlocked' ? DELAY_BETWEEN_POPUPS : 0)
 
-        })
+          }).catch(e => {
+            console.log('Error while trying to sign transaction ', e)
+            reject(e && e.toString() || 'Unknown error')
+          })
       })
   }
 
@@ -229,7 +232,10 @@ class TrezorKeyring extends EventEmitter {
             // This is necessary to avoid popup collision
             // between the unlock & sign trezor popups
             }, status === 'just unlocked' ? DELAY_BETWEEN_POPUPS : 0)
-        })
+          }).catch(e => {
+            console.log('Error while trying to sign a message ', e)
+            reject(e && e.toString() || 'Unknown error')
+          })
     })
   }
 
