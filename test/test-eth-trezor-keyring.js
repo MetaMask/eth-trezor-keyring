@@ -1,10 +1,13 @@
+global.window = require('./window.shim')
+global.navigator = require('./window.shim')
+
 const chai = require('chai')
 const spies = require('chai-spies')
 const {expect} = chai
 const EthereumTx = require('ethereumjs-tx')
 const assert = require('assert')
 const HDKey = require('hdkey')
-const TrezorConnect = require('../trezor-connect.js')
+const TrezorConnect = require('trezor-connect').default
 
 const TrezorKeyring = require('../')
 
@@ -123,9 +126,9 @@ describe('TrezorKeyring', function () {
             })
         })
 
-        chai.spy.on(TrezorConnect, 'getXPubKey')
+        chai.spy.on(TrezorConnect, 'getPublicKey')
 
-        it('should call TrezorConnect.getXPubKey if we dont have a public key', async function () {
+        it('should call TrezorConnect.getPublicKey if we dont have a public key', async function () {
             keyring.hdk = new HDKey()
             try {
                 await keyring.unlock()
@@ -133,7 +136,7 @@ describe('TrezorKeyring', function () {
                // because we're trying to open the trezor popup in node
                // it will throw an exception
             } finally {
-                expect(TrezorConnect.getXPubKey).to.have.been.called()
+                expect(TrezorConnect.getPublicKey).to.have.been.called()
             }
         })
     })
@@ -301,14 +304,14 @@ describe('TrezorKeyring', function () {
     })
 
     describe('signTransaction', function () {
-        it('should call TrezorConnect.ethereumSignTx', function (done) {
+        it('should call TrezorConnect.ethereumSignTransaction', function (done) {
 
-            chai.spy.on(TrezorConnect, 'ethereumSignTx')
+            chai.spy.on(TrezorConnect, 'ethereumSignTransaction')
 
             keyring.signTransaction(fakeAccounts[0], fakeTx).catch(e => {
                 // we expect this to be rejected because
                 // we are trying to open a popup from node
-                expect(TrezorConnect.ethereumSignTx).to.have.been.called()
+                expect(TrezorConnect.ethereumSignTransaction).to.have.been.called()
                 done()
             })
         })

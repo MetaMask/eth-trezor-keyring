@@ -1,6 +1,6 @@
 {
   "name": "eth-trezor-keyring",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "A MetaMask compatible keyring, for trezor hardware wallets",
   "main": "index.js",
   "scripts": {
@@ -29,7 +29,8 @@
     "ethereumjs-tx": "^1.3.4",
     "ethereumjs-util": "^5.1.5",
     "events": "^2.0.0",
-    "hdkey": "0.8.0"
+    "hdkey": "0.8.0",
+    "trezor-connect": "^6.0.2"
   },
   "devDependencies": {
     "assert": "^1.4.1",
