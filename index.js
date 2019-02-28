@@ -20,6 +20,10 @@ class TrezorKeyring extends EventEmitter {
     this.unlockedAccount = 0
     this.paths = {}
     this.deserialize(opts)
+    TrezorConnect.manifest({
+      email: 'support@metamask.io',
+      appUrl: 'https://metamask.io',
+    })
   }
 
   serialize () {
