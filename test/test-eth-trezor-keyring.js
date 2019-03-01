@@ -1,5 +1,6 @@
 global.window = require('./window.shim')
-global.navigator = require('./window.shim')
+global.navigator = require('./navigator.shim')
+global.self = require('./self.shim')
 
 const chai = require('chai')
 const spies = require('chai-spies')
