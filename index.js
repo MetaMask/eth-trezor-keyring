@@ -8,6 +8,10 @@ const keyringType = 'Trezor Hardware'
 const pathBase = 'm'
 const MAX_INDEX = 1000
 const DELAY_BETWEEN_POPUPS = 1000
+const TREZOR_CONNECT_MANIFEST = {
+  email: 'support@metamask.io',
+  appUrl: 'https://metamask.io',
+}
 
 class TrezorKeyring extends EventEmitter {
   constructor (opts = {}) {
@@ -20,6 +24,7 @@ class TrezorKeyring extends EventEmitter {
     this.unlockedAccount = 0
     this.paths = {}
     this.deserialize(opts)
+    TrezorConnect.manifest(TREZOR_CONNECT_MANIFEST)
   }
 
   serialize () {
