@@ -210,16 +210,29 @@ class TrezorKeyring extends EventEmitter {
     throw new Error('Not supported on this device')
   }
 
+  isHexMessage (message) {
+    const regexp = /^0x[0-9a-fA-F]+$/;
+    if (regexp.test(message)) {
+      return true;
+    } else {
+      return false;
+    }
+  }
+
   // For personal_sign, we need to prefix the message:
   signPersonalMessage (withAccount, message) {
     return new Promise((resolve, reject) => {
       this.unlock()
           .then(status => {
             setTimeout(_ => {
-              const humanReadableMsg = this._toAscii(message)
+              var isHexMessage = this.isHexMessage(message);
+              if (isHexMessage) {
+                message = this._toAscii(message)
+              }
               TrezorConnect.ethereumSignMessage({
                 path: this._pathFromAddress(withAccount),
-                message: humanReadableMsg,
+                message: message,
+                hex: isHexMessage
               }).then(response => {
                 if (response.success) {
                   if (response.payload.address !== ethUtil.toChecksumAddress(withAccount)) {
