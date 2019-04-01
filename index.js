@@ -207,7 +207,7 @@ class TrezorKeyring extends EventEmitter {
   }
 
   signMessage (withAccount, data) {
-    return this.signPersonalMessage (withAccount, data);
+    return this.signPersonalMessage(withAccount, data)
   }
 
   // For personal_sign, we need to prefix the message:
@@ -219,7 +219,7 @@ class TrezorKeyring extends EventEmitter {
               TrezorConnect.ethereumSignMessage({
                 path: this._pathFromAddress(withAccount),
                 message: ethUtil.stripHexPrefix(message),
-                hex: true
+                hex: true,
               }).then(response => {
                 if (response.success) {
                   if (response.payload.address !== ethUtil.toChecksumAddress(withAccount)) {
