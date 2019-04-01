@@ -348,18 +348,24 @@ describe('TrezorKeyring', function () {
     })
 
     describe('signTypedData', function () {
-        it('should throw an error because it is not supported', function () {
-            expect(_ => {
-                keyring.signTypedData()
-            }).to.throw('Not supported on this device')
+        it('should throw an error because it is not supported', async function () {
+            try {
+                await keyring.signTypedData()
+            } catch (e) {
+                expect(e instanceof Error, true)
+                expect(e.toString(), 'Not supported on this device')
+            }
         })
     })
 
     describe('exportAccount', function () {
-        it('should throw an error because it is not supported', function () {
-            expect(_ => {
-                keyring.exportAccount()
-            }).to.throw('Not supported on this device')
+        it('should throw an error because it is not supported', async function () {
+            try {
+                await keyring.exportAccount()
+            } catch (e) {
+                expect(e instanceof Error, true)
+                expect(e.toString(), 'Not supported on this device')
+            }
         })
     })
 

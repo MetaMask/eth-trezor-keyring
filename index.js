@@ -243,11 +243,11 @@ class TrezorKeyring extends EventEmitter {
 
   signTypedData (withAccount, typedData) {
     // Waiting on trezor to enable this
-    throw new Error('Not supported on this device')
+    return Promise.reject(new Error('Not supported on this device'))
   }
 
   exportAccount (address) {
-    throw new Error('Not supported on this device')
+    return Promise.reject(new Error('Not supported on this device'))
   }
 
   forgetDevice () {
