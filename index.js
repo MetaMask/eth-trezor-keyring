@@ -62,11 +62,10 @@ class TrezorKeyring extends EventEmitter {
             this.hdk.chainCode = new Buffer(response.payload.chainCode, 'hex')
             resolve('just unlocked')
           } else {
-            reject(response.payload && response.payload.error || 'Unknown error')
+            reject(new Error(response.payload && response.payload.error || 'Unknown error'))
           }
         }).catch(e => {
-          console.log('Error while trying to get public keys ', e)
-          reject(e && e.toString() || 'Unknown error')
+          reject(new Error(e && e.toString() || 'Unknown error'))
         })
     })
   }
@@ -182,17 +181,16 @@ class TrezorKeyring extends EventEmitter {
                   const addressSignedWith = ethUtil.toChecksumAddress(`0x${signedTx.from.toString('hex')}`)
                   const correctAddress = ethUtil.toChecksumAddress(address)
                   if (addressSignedWith !== correctAddress) {
-                    reject('signature doesnt match the right address')
+                    reject(new Error('signature doesnt match the right address'))
                   }
 
                   resolve(signedTx)
                 } else {
-                  reject(response.payload && response.payload.error || 'Unknown error')
+                  reject(new Error(response.payload && response.payload.error || 'Unknown error'))
                 }
 
               }).catch(e => {
-                console.log('Error while trying to sign transaction ', e)
-                reject(e && e.toString() || 'Unknown error')
+                reject(new Error(e && e.toString() || 'Unknown error'))
               })
 
             // This is necessary to avoid popup collision
@@ -200,8 +198,7 @@ class TrezorKeyring extends EventEmitter {
             }, status === 'just unlocked' ? DELAY_BETWEEN_POPUPS : 0)
 
           }).catch(e => {
-            console.log('Error while trying to sign transaction ', e)
-            reject(e && e.toString() || 'Unknown error')
+            reject(new Error(e && e.toString() || 'Unknown error'))
           })
       })
   }
@@ -223,23 +220,23 @@ class TrezorKeyring extends EventEmitter {
               }).then(response => {
                 if (response.success) {
                   if (response.payload.address !== ethUtil.toChecksumAddress(withAccount)) {
-                    reject('signature doesnt match the right address')
+                    reject(new Error('signature doesnt match the right address'))
                   }
                   const signature = `0x${response.payload.signature}`
                   resolve(signature)
                 } else {
-                  reject(response.payload && response.payload.error || 'Unknown error')
+                  reject(new Error(response.payload && response.payload.error || 'Unknown error'))
                 }
               }).catch(e => {
                 console.log('Error while trying to sign a message ', e)
-                reject(e && e.toString() || 'Unknown error')
+                reject(new Error(e && e.toString() || 'Unknown error'))
               })
             // This is necessary to avoid popup collision
             // between the unlock & sign trezor popups
             }, status === 'just unlocked' ? DELAY_BETWEEN_POPUPS : 0)
           }).catch(e => {
             console.log('Error while trying to sign a message ', e)
-            reject(e && e.toString() || 'Unknown error')
+            reject(new Error(e && e.toString() || 'Unknown error'))
           })
     })
   }
