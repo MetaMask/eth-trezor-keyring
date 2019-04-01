@@ -207,7 +207,7 @@ class TrezorKeyring extends EventEmitter {
   }
 
   signMessage (withAccount, data) {
-    throw new Error('Not supported on this device')
+    return this.signPersonalMessage (withAccount, data);
   }
 
   // For personal_sign, we need to prefix the message:
