@@ -319,21 +319,29 @@ describe('TrezorKeyring', function () {
     })
 
     describe('signMessage', function () {
-        it('should throw an error because it is not supported', function () {
-            expect(_ => {
-                keyring.signMessage()
-            }).to.throw('Not supported on this device')
+        it('should call TrezorConnect.ethereumSignMessage', function (done) {
+            const sandbox = chai.spy.sandbox()
+            sandbox.on(TrezorConnect, 'ethereumSignMessage')
+            keyring.signMessage(fakeAccounts[0], 'some msg').catch(e => {
+                // we expect this to be rejected because
+                // we are trying to open a popup from node
+                expect(TrezorConnect.ethereumSignMessage).to.have.been.called()
+                sandbox.restore()
+                done()
+            })
         })
     })
 
     describe('signPersonalMessage', function () {
         it('should call TrezorConnect.ethereumSignMessage', function (done) {
 
-            chai.spy.on(TrezorConnect, 'ethereumSignMessage')
+            const sandbox = chai.spy.sandbox()
+            sandbox.on(TrezorConnect, 'ethereumSignMessage')
             keyring.signPersonalMessage(fakeAccounts[0], 'some msg').catch(e => {
                 // we expect this to be rejected because
                 // we are trying to open a popup from node
                 expect(TrezorConnect.ethereumSignMessage).to.have.been.called()
+                sandbox.restore()
                 done()
             })
         })
