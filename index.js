@@ -216,10 +216,10 @@ class TrezorKeyring extends EventEmitter {
       this.unlock()
           .then(status => {
             setTimeout(_ => {
-              const humanReadableMsg = this._toAscii(message)
               TrezorConnect.ethereumSignMessage({
                 path: this._pathFromAddress(withAccount),
-                message: humanReadableMsg,
+                message: ethUtil.stripHexPrefix(message),
+                hex: true
               }).then(response => {
                 if (response.success) {
                   if (response.payload.address !== ethUtil.toChecksumAddress(withAccount)) {
@@ -291,20 +291,6 @@ class TrezorKeyring extends EventEmitter {
       throw new Error('Unknown address')
     }
     return `${this.hdPath}/${index}`
-  }
-
-  _toAscii (hex) {
-      let str = ''
-      let i = 0; const l = hex.length
-      if (hex.substring(0, 2) === '0x') {
-          i = 2
-      }
-      for (; i < l; i += 2) {
-          const code = parseInt(hex.substr(i, 2), 16)
-          str += String.fromCharCode(code)
-      }
-
-      return str
   }
 }
 
