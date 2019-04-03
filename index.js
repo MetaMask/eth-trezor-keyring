@@ -62,11 +62,10 @@ class TrezorKeyring extends EventEmitter {
             this.hdk.chainCode = new Buffer(response.payload.chainCode, 'hex')
             resolve('just unlocked')
           } else {
-            reject(response.payload && response.payload.error || 'Unknown error')
+            reject(new Error(response.payload && response.payload.error || 'Unknown error'))
           }
         }).catch(e => {
-          console.log('Error while trying to get public keys ', e)
-          reject(e && e.toString() || 'Unknown error')
+          reject(new Error(e && e.toString() || 'Unknown error'))
         })
     })
   }
@@ -182,17 +181,16 @@ class TrezorKeyring extends EventEmitter {
                   const addressSignedWith = ethUtil.toChecksumAddress(`0x${signedTx.from.toString('hex')}`)
                   const correctAddress = ethUtil.toChecksumAddress(address)
                   if (addressSignedWith !== correctAddress) {
-                    reject('signature doesnt match the right address')
+                    reject(new Error('signature doesnt match the right address'))
                   }
 
                   resolve(signedTx)
                 } else {
-                  reject(response.payload && response.payload.error || 'Unknown error')
+                  reject(new Error(response.payload && response.payload.error || 'Unknown error'))
                 }
 
               }).catch(e => {
-                console.log('Error while trying to sign transaction ', e)
-                reject(e && e.toString() || 'Unknown error')
+                reject(new Error(e && e.toString() || 'Unknown error'))
               })
 
             // This is necessary to avoid popup collision
@@ -200,14 +198,13 @@ class TrezorKeyring extends EventEmitter {
             }, status === 'just unlocked' ? DELAY_BETWEEN_POPUPS : 0)
 
           }).catch(e => {
-            console.log('Error while trying to sign transaction ', e)
-            reject(e && e.toString() || 'Unknown error')
+            reject(new Error(e && e.toString() || 'Unknown error'))
           })
       })
   }
 
   signMessage (withAccount, data) {
-    throw new Error('Not supported on this device')
+    return this.signPersonalMessage(withAccount, data)
   }
 
   // For personal_sign, we need to prefix the message:
@@ -216,41 +213,41 @@ class TrezorKeyring extends EventEmitter {
       this.unlock()
           .then(status => {
             setTimeout(_ => {
-              const humanReadableMsg = this._toAscii(message)
               TrezorConnect.ethereumSignMessage({
                 path: this._pathFromAddress(withAccount),
-                message: humanReadableMsg,
+                message: ethUtil.stripHexPrefix(message),
+                hex: true,
               }).then(response => {
                 if (response.success) {
                   if (response.payload.address !== ethUtil.toChecksumAddress(withAccount)) {
-                    reject('signature doesnt match the right address')
+                    reject(new Error('signature doesnt match the right address'))
                   }
                   const signature = `0x${response.payload.signature}`
                   resolve(signature)
                 } else {
-                  reject(response.payload && response.payload.error || 'Unknown error')
+                  reject(new Error(response.payload && response.payload.error || 'Unknown error'))
                 }
               }).catch(e => {
                 console.log('Error while trying to sign a message ', e)
-                reject(e && e.toString() || 'Unknown error')
+                reject(new Error(e && e.toString() || 'Unknown error'))
               })
             // This is necessary to avoid popup collision
             // between the unlock & sign trezor popups
             }, status === 'just unlocked' ? DELAY_BETWEEN_POPUPS : 0)
           }).catch(e => {
             console.log('Error while trying to sign a message ', e)
-            reject(e && e.toString() || 'Unknown error')
+            reject(new Error(e && e.toString() || 'Unknown error'))
           })
     })
   }
 
   signTypedData (withAccount, typedData) {
     // Waiting on trezor to enable this
-    throw new Error('Not supported on this device')
+    return Promise.reject(new Error('Not supported on this device'))
   }
 
   exportAccount (address) {
-    throw new Error('Not supported on this device')
+    return Promise.reject(new Error('Not supported on this device'))
   }
 
   forgetDevice () {
@@ -291,20 +288,6 @@ class TrezorKeyring extends EventEmitter {
       throw new Error('Unknown address')
     }
     return `${this.hdPath}/${index}`
-  }
-
-  _toAscii (hex) {
-      let str = ''
-      let i = 0; const l = hex.length
-      if (hex.substring(0, 2) === '0x') {
-          i = 2
-      }
-      for (; i < l; i += 2) {
-          const code = parseInt(hex.substr(i, 2), 16)
-          str += String.fromCharCode(code)
-      }
-
-      return str
   }
 }
 
