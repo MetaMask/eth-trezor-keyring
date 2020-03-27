@@ -24,6 +24,9 @@
     "url": "https://github.com/metamask/eth-trezor-keyring/issues"
   },
   "homepage": "https://github.com/metamask/eth-trezor-keyring#readme",
+  "resolutions": {
+    "mocha/mkdirp": "^0.5.1"
+  },
   "dependencies": {
     "eth-sig-util": "^1.4.2",
     "ethereumjs-tx": "^1.3.4",
