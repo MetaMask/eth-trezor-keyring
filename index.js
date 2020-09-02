@@ -3,6 +3,7 @@ const ethUtil = require('ethereumjs-util')
 const Transaction = require('ethereumjs-tx')
 const HDKey = require('hdkey')
 const TrezorConnect = require('trezor-connect').default
+
 const hdPathString = `m/44'/60'/0'/0`
 const keyringType = 'Trezor Hardware'
 const pathBase = 'm'
@@ -47,26 +48,28 @@ class TrezorKeyring extends EventEmitter {
   }
 
   isUnlocked () {
-    return !!(this.hdk && this.hdk.publicKey)
+    return Boolean(this.hdk && this.hdk.publicKey)
   }
 
   unlock () {
-    if (this.isUnlocked()) return Promise.resolve('already unlocked')
+    if (this.isUnlocked()) {
+      return Promise.resolve('already unlocked')
+    }
     return new Promise((resolve, reject) => {
       TrezorConnect.getPublicKey({
-          path: this.hdPath,
-          coin: 'ETH',
-        }).then(response => {
-          if (response.success) {
-            this.hdk.publicKey = new Buffer(response.payload.publicKey, 'hex')
-            this.hdk.chainCode = new Buffer(response.payload.chainCode, 'hex')
-            resolve('just unlocked')
-          } else {
-            reject(new Error(response.payload && response.payload.error || 'Unknown error'))
-          }
-        }).catch(e => {
-          reject(new Error(e && e.toString() || 'Unknown error'))
-        })
+        path: this.hdPath,
+        coin: 'ETH',
+      }).then((response) => {
+        if (response.success) {
+          this.hdk.publicKey = new Buffer(response.payload.publicKey, 'hex')
+          this.hdk.chainCode = new Buffer(response.payload.chainCode, 'hex')
+          resolve('just unlocked')
+        } else {
+          reject(new Error(response.payload && response.payload.error || 'Unknown error'))
+        }
+      }).catch((e) => {
+        reject(new Error(e && e.toString() || 'Unknown error'))
+      })
     })
   }
 
@@ -78,7 +81,7 @@ class TrezorKeyring extends EventEmitter {
 
     return new Promise((resolve, reject) => {
       this.unlock()
-        .then(_ => {
+        .then((_) => {
           const from = this.unlockedAccount
           const to = from + n
           this.accounts = []
@@ -90,7 +93,7 @@ class TrezorKeyring extends EventEmitter {
           }
           resolve(this.accounts)
         })
-        .catch(e => {
+        .catch((e) => {
           reject(e)
         })
     })
@@ -112,11 +115,13 @@ class TrezorKeyring extends EventEmitter {
   __getPage (increment) {
     this.page += increment
 
-    if (this.page <= 0) { this.page = 1 }
+    if (this.page <= 0) {
+      this.page = 1
+    }
 
     return new Promise((resolve, reject) => {
       this.unlock()
-        .then(_ => {
+        .then((_) => {
 
           const from = (this.page - 1) * this.perPage
           const to = from + this.perPage
@@ -125,8 +130,8 @@ class TrezorKeyring extends EventEmitter {
 
           for (let i = from; i < to; i++) {
             const address = this._addressFromIndex(pathBase, i)
-             accounts.push({
-              address: address,
+            accounts.push({
+              address,
               balance: null,
               index: i,
             })
@@ -135,7 +140,7 @@ class TrezorKeyring extends EventEmitter {
           }
           resolve(accounts)
         })
-        .catch(e => {
+        .catch((e) => {
           reject(e)
         })
     })
@@ -146,61 +151,61 @@ class TrezorKeyring extends EventEmitter {
   }
 
   removeAccount (address) {
-    if (!this.accounts.map(a => a.toLowerCase()).includes(address.toLowerCase())) {
+    if (!this.accounts.map((a) => a.toLowerCase()).includes(address.toLowerCase())) {
       throw new Error(`Address ${address} not found in this keyring`)
     }
-    this.accounts = this.accounts.filter(a => a.toLowerCase() !== address.toLowerCase())
+    this.accounts = this.accounts.filter((a) => a.toLowerCase() !== address.toLowerCase())
   }
 
   // tx is an instance of the ethereumjs-transaction class.
   signTransaction (address, tx) {
 
-      return new Promise((resolve, reject) => {
-        this.unlock()
-          .then(status => {
-            setTimeout(_ => {
-              TrezorConnect.ethereumSignTransaction({
-                path: this._pathFromAddress(address),
-                transaction: {
-                  to: this._normalize(tx.to),
-                  value: this._normalize(tx.value),
-                  data: this._normalize(tx.data),
-                  chainId: tx._chainId,
-                  nonce: this._normalize(tx.nonce),
-                  gasLimit: this._normalize(tx.gasLimit),
-                  gasPrice: this._normalize(tx.gasPrice),
-                },
-              }).then(response => {
-                if (response.success) {
-                  tx.v = response.payload.v
-                  tx.r = response.payload.r
-                  tx.s = response.payload.s
+    return new Promise((resolve, reject) => {
+      this.unlock()
+        .then((status) => {
+          setTimeout((_) => {
+            TrezorConnect.ethereumSignTransaction({
+              path: this._pathFromAddress(address),
+              transaction: {
+                to: this._normalize(tx.to),
+                value: this._normalize(tx.value),
+                data: this._normalize(tx.data),
+                chainId: tx._chainId,
+                nonce: this._normalize(tx.nonce),
+                gasLimit: this._normalize(tx.gasLimit),
+                gasPrice: this._normalize(tx.gasPrice),
+              },
+            }).then((response) => {
+              if (response.success) {
+                tx.v = response.payload.v
+                tx.r = response.payload.r
+                tx.s = response.payload.s
 
-                  const signedTx = new Transaction(tx)
+                const signedTx = new Transaction(tx)
 
-                  const addressSignedWith = ethUtil.toChecksumAddress(`0x${signedTx.from.toString('hex')}`)
-                  const correctAddress = ethUtil.toChecksumAddress(address)
-                  if (addressSignedWith !== correctAddress) {
-                    reject(new Error('signature doesnt match the right address'))
-                  }
-
-                  resolve(signedTx)
-                } else {
-                  reject(new Error(response.payload && response.payload.error || 'Unknown error'))
+                const addressSignedWith = ethUtil.toChecksumAddress(`0x${signedTx.from.toString('hex')}`)
+                const correctAddress = ethUtil.toChecksumAddress(address)
+                if (addressSignedWith !== correctAddress) {
+                  reject(new Error('signature doesnt match the right address'))
                 }
 
-              }).catch(e => {
-                reject(new Error(e && e.toString() || 'Unknown error'))
-              })
+                resolve(signedTx)
+              } else {
+                reject(new Error(response.payload && response.payload.error || 'Unknown error'))
+              }
+
+            }).catch((e) => {
+              reject(new Error(e && e.toString() || 'Unknown error'))
+            })
 
             // This is necessary to avoid popup collision
             // between the unlock & sign trezor popups
-            }, status === 'just unlocked' ? DELAY_BETWEEN_POPUPS : 0)
+          }, status === 'just unlocked' ? DELAY_BETWEEN_POPUPS : 0)
 
-          }).catch(e => {
-            reject(new Error(e && e.toString() || 'Unknown error'))
-          })
-      })
+        }).catch((e) => {
+          reject(new Error(e && e.toString() || 'Unknown error'))
+        })
+    })
   }
 
   signMessage (withAccount, data) {
@@ -211,33 +216,33 @@ class TrezorKeyring extends EventEmitter {
   signPersonalMessage (withAccount, message) {
     return new Promise((resolve, reject) => {
       this.unlock()
-          .then(status => {
-            setTimeout(_ => {
-              TrezorConnect.ethereumSignMessage({
-                path: this._pathFromAddress(withAccount),
-                message: ethUtil.stripHexPrefix(message),
-                hex: true,
-              }).then(response => {
-                if (response.success) {
-                  if (response.payload.address !== ethUtil.toChecksumAddress(withAccount)) {
-                    reject(new Error('signature doesnt match the right address'))
-                  }
-                  const signature = `0x${response.payload.signature}`
-                  resolve(signature)
-                } else {
-                  reject(new Error(response.payload && response.payload.error || 'Unknown error'))
+        .then((status) => {
+          setTimeout((_) => {
+            TrezorConnect.ethereumSignMessage({
+              path: this._pathFromAddress(withAccount),
+              message: ethUtil.stripHexPrefix(message),
+              hex: true,
+            }).then((response) => {
+              if (response.success) {
+                if (response.payload.address !== ethUtil.toChecksumAddress(withAccount)) {
+                  reject(new Error('signature doesnt match the right address'))
                 }
-              }).catch(e => {
-                console.log('Error while trying to sign a message ', e)
-                reject(new Error(e && e.toString() || 'Unknown error'))
-              })
+                const signature = `0x${response.payload.signature}`
+                resolve(signature)
+              } else {
+                reject(new Error(response.payload && response.payload.error || 'Unknown error'))
+              }
+            }).catch((e) => {
+              console.log('Error while trying to sign a message ', e)
+              reject(new Error(e && e.toString() || 'Unknown error'))
+            })
             // This is necessary to avoid popup collision
             // between the unlock & sign trezor popups
-            }, status === 'just unlocked' ? DELAY_BETWEEN_POPUPS : 0)
-          }).catch(e => {
-            console.log('Error while trying to sign a message ', e)
-            reject(new Error(e && e.toString() || 'Unknown error'))
-          })
+          }, status === 'just unlocked' ? DELAY_BETWEEN_POPUPS : 0)
+        }).catch((e) => {
+          console.log('Error while trying to sign a message ', e)
+          reject(new Error(e && e.toString() || 'Unknown error'))
+        })
     })
   }
 

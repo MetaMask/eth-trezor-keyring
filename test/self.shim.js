@@ -1,5 +1,5 @@
 try {
-    module.exports = self || {}
+  module.exports = self || {}
 } catch (e) {
-    module.exports = {}
+  module.exports = {}
 }
