@@ -61,14 +61,14 @@ class TrezorKeyring extends EventEmitter {
         coin: 'ETH',
       }).then((response) => {
         if (response.success) {
-          this.hdk.publicKey = new Buffer(response.payload.publicKey, 'hex')
-          this.hdk.chainCode = new Buffer(response.payload.chainCode, 'hex')
+          this.hdk.publicKey = Buffer.from(response.payload.publicKey, 'hex')
+          this.hdk.chainCode = Buffer.from(response.payload.chainCode, 'hex')
           resolve('just unlocked')
         } else {
-          reject(new Error(response.payload && response.payload.error || 'Unknown error'))
+          reject(new Error((response.payload && response.payload.error) || 'Unknown error'))
         }
       }).catch((e) => {
-        reject(new Error(e && e.toString() || 'Unknown error'))
+        reject(new Error((e && e.toString()) || 'Unknown error'))
       })
     })
   }
@@ -191,11 +191,11 @@ class TrezorKeyring extends EventEmitter {
 
                 resolve(signedTx)
               } else {
-                reject(new Error(response.payload && response.payload.error || 'Unknown error'))
+                reject(new Error((response.payload && response.payload.error) || 'Unknown error'))
               }
 
             }).catch((e) => {
-              reject(new Error(e && e.toString() || 'Unknown error'))
+              reject(new Error((e && e.toString()) || 'Unknown error'))
             })
 
             // This is necessary to avoid popup collision
@@ -203,7 +203,7 @@ class TrezorKeyring extends EventEmitter {
           }, status === 'just unlocked' ? DELAY_BETWEEN_POPUPS : 0)
 
         }).catch((e) => {
-          reject(new Error(e && e.toString() || 'Unknown error'))
+          reject(new Error((e && e.toString()) || 'Unknown error'))
         })
     })
   }
@@ -230,28 +230,28 @@ class TrezorKeyring extends EventEmitter {
                 const signature = `0x${response.payload.signature}`
                 resolve(signature)
               } else {
-                reject(new Error(response.payload && response.payload.error || 'Unknown error'))
+                reject(new Error((response.payload && response.payload.error) || 'Unknown error'))
               }
             }).catch((e) => {
               console.log('Error while trying to sign a message ', e)
-              reject(new Error(e && e.toString() || 'Unknown error'))
+              reject(new Error((e && e.toString()) || 'Unknown error'))
             })
             // This is necessary to avoid popup collision
             // between the unlock & sign trezor popups
           }, status === 'just unlocked' ? DELAY_BETWEEN_POPUPS : 0)
         }).catch((e) => {
           console.log('Error while trying to sign a message ', e)
-          reject(new Error(e && e.toString() || 'Unknown error'))
+          reject(new Error((e && e.toString()) || 'Unknown error'))
         })
     })
   }
 
-  signTypedData (withAccount, typedData) {
+  signTypedData () {
     // Waiting on trezor to enable this
     return Promise.reject(new Error('Not supported on this device'))
   }
 
-  exportAccount (address) {
+  exportAccount () {
     return Promise.reject(new Error('Not supported on this device'))
   }
 
@@ -269,6 +269,7 @@ class TrezorKeyring extends EventEmitter {
     return ethUtil.bufferToHex(buf).toString()
   }
 
+  // eslint-disable-next-line no-shadow
   _addressFromIndex (pathBase, i) {
     const dkey = this.hdk.derive(`${pathBase}/${i}`)
     const address = ethUtil

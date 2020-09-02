@@ -2,16 +2,16 @@ global.window = require('./window.shim')
 global.navigator = require('./navigator.shim')
 global.self = require('./self.shim')
 
+const assert = require('assert')
 const chai = require('chai')
 const spies = require('chai-spies')
-
-const { expect } = chai
 const EthereumTx = require('ethereumjs-tx')
-const assert = require('assert')
 const HDKey = require('hdkey')
 const TrezorConnect = require('trezor-connect').default
 
 const TrezorKeyring = require('..')
+
+const { expect } = chai
 
 const fakeAccounts = [
   '0xF30952A1c534CDE7bC471380065726fa8686dfB3',
@@ -127,9 +127,8 @@ describe('TrezorKeyring', function () {
       })
     })
 
-    chai.spy.on(TrezorConnect, 'getPublicKey')
-
     it('should call TrezorConnect.getPublicKey if we dont have a public key', async function () {
+      chai.spy.on(TrezorConnect, 'getPublicKey')
       keyring.hdk = new HDKey()
       try {
         await keyring.unlock()
@@ -308,7 +307,7 @@ describe('TrezorKeyring', function () {
 
       chai.spy.on(TrezorConnect, 'ethereumSignTransaction')
 
-      keyring.signTransaction(fakeAccounts[0], fakeTx).catch((e) => {
+      keyring.signTransaction(fakeAccounts[0], fakeTx).catch(() => {
         // we expect this to be rejected because
         // we are trying to open a popup from node
         expect(TrezorConnect.ethereumSignTransaction).to.have.been.called()
@@ -321,7 +320,7 @@ describe('TrezorKeyring', function () {
     it('should call TrezorConnect.ethereumSignMessage', function (done) {
       const sandbox = chai.spy.sandbox()
       sandbox.on(TrezorConnect, 'ethereumSignMessage')
-      keyring.signMessage(fakeAccounts[0], 'some msg').catch((e) => {
+      keyring.signMessage(fakeAccounts[0], 'some msg').catch(() => {
         // we expect this to be rejected because
         // we are trying to open a popup from node
         expect(TrezorConnect.ethereumSignMessage).to.have.been.called()
@@ -336,7 +335,7 @@ describe('TrezorKeyring', function () {
 
       const sandbox = chai.spy.sandbox()
       sandbox.on(TrezorConnect, 'ethereumSignMessage')
-      keyring.signPersonalMessage(fakeAccounts[0], 'some msg').catch((e) => {
+      keyring.signPersonalMessage(fakeAccounts[0], 'some msg').catch(() => {
         // we expect this to be rejected because
         // we are trying to open a popup from node
         expect(TrezorConnect.ethereumSignMessage).to.have.been.called()

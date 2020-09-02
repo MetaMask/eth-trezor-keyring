@@ -1,4 +1,5 @@
 try {
+  // eslint-disable-next-line no-undef
   module.exports = window || {
     __TREZOR_CONNECT_SRC: null,
     location: {
