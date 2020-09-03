@@ -2,7 +2,7 @@ global.window = require('./window.shim')
 global.navigator = require('./navigator.shim')
 global.self = require('./self.shim')
 
-const assert = require('assert')
+const assert = require('assert').strict
 const chai = require('chai')
 const spies = require('chai-spies')
 const EthereumTx = require('ethereumjs-tx')
