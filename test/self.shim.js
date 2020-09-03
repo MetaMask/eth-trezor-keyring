@@ -1,5 +1,6 @@
 try {
-    module.exports = self || {}
+  // eslint-disable-next-line no-undef
+  module.exports = self || {}
 } catch (e) {
-    module.exports = {}
+  module.exports = {}
 }
