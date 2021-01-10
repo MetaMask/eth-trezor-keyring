@@ -47,6 +47,7 @@ const fakeTx = new EthereumTx({
 chai.use(spies)
 
 describe('TrezorKeyring', function () {
+  this.timeout(5000)
 
   let keyring
 
@@ -95,9 +96,7 @@ describe('TrezorKeyring', function () {
 
   describe('deserialize', function () {
     it('serializes what it deserializes', function (done) {
-
       const someHdPath = `m/44'/60'/0'/1`
-
       keyring.deserialize({
         page: 10,
         hdPath: someHdPath,
@@ -131,12 +130,16 @@ describe('TrezorKeyring', function () {
       chai.spy.on(TrezorConnect, 'getPublicKey')
       keyring.hdk = new HDKey()
       try {
-        await keyring.unlock()
+        console.log("Calling 'await keyring.unlock()'!")
+        const unlockResult = await keyring.unlock()
+        assert.equal(keyring.isUnlocked(), true)
+        console.log("Unlock result is: ", unlockResult)
       } catch (e) {
         // because we're trying to open the trezor popup in node
         // it will throw an exception
+        console.log("TrezorConnect.getPublicKey exception: ", e)
       } finally {
-        expect(TrezorConnect.getPublicKey).to.have.been.called()
+        expect(TrezorConnect.ethereumGetPublicKey).to.have.been.called()
       }
     })
   })

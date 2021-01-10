@@ -13,7 +13,6 @@ const TREZOR_CONNECT_MANIFEST = {
   email: 'support@metamask.io',
   appUrl: 'https://metamask.io',
 }
-
 class TrezorKeyring extends EventEmitter {
   constructor (opts = {}) {
     super()
@@ -55,11 +54,13 @@ class TrezorKeyring extends EventEmitter {
     if (this.isUnlocked()) {
       return Promise.resolve('already unlocked')
     }
+
     return new Promise((resolve, reject) => {
       TrezorConnect.getPublicKey({
         path: this.hdPath,
         coin: 'ETH',
       }).then((response) => {
+        console.log("Unlock response is: ", response);
         if (response.success) {
           this.hdk.publicKey = Buffer.from(response.payload.publicKey, 'hex')
           this.hdk.chainCode = Buffer.from(response.payload.chainCode, 'hex')
@@ -233,14 +234,12 @@ class TrezorKeyring extends EventEmitter {
                 reject(new Error((response.payload && response.payload.error) || 'Unknown error'))
               }
             }).catch((e) => {
-              console.log('Error while trying to sign a message ', e)
               reject(new Error((e && e.toString()) || 'Unknown error'))
             })
             // This is necessary to avoid popup collision
             // between the unlock & sign trezor popups
           }, status === 'just unlocked' ? DELAY_BETWEEN_POPUPS : 0)
         }).catch((e) => {
-          console.log('Error while trying to sign a message ', e)
           reject(new Error((e && e.toString()) || 'Unknown error'))
         })
     })
