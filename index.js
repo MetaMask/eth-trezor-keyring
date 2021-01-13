@@ -60,7 +60,6 @@ class TrezorKeyring extends EventEmitter {
         path: this.hdPath,
         coin: 'ETH',
       }).then((response) => {
-        console.log("Unlock response is: ", response);
         if (response.success) {
           this.hdk.publicKey = Buffer.from(response.payload.publicKey, 'hex')
           this.hdk.chainCode = Buffer.from(response.payload.chainCode, 'hex')

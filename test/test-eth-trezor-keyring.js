@@ -47,8 +47,6 @@ const fakeTx = new EthereumTx({
 chai.use(spies)
 
 describe('TrezorKeyring', function () {
-  this.timeout(5000)
-
   let keyring
 
   beforeEach(async function () {
@@ -119,6 +117,7 @@ describe('TrezorKeyring', function () {
     })
   })
 
+  
   describe('unlock', function () {
     it('should resolve if we have a public key', function (done) {
       keyring.unlock().then((_) => {
@@ -126,20 +125,23 @@ describe('TrezorKeyring', function () {
       })
     })
 
-    it('should call TrezorConnect.getPublicKey if we dont have a public key', async function () {
+    it('should call TrezorConnect.getPublicKey if we dont have a public key', async function (done) {
       chai.spy.on(TrezorConnect, 'getPublicKey')
       keyring.hdk = new HDKey()
+
+      // Kick off async unlock call which we'll immediately cancel 
+      // to confirm getPublicKey has been called
       try {
-        console.log("Calling 'await keyring.unlock()'!")
-        const unlockResult = await keyring.unlock()
-        assert.equal(keyring.isUnlocked(), true)
-        console.log("Unlock result is: ", unlockResult)
-      } catch (e) {
-        // because we're trying to open the trezor popup in node
-        // it will throw an exception
-        console.log("TrezorConnect.getPublicKey exception: ", e)
-      } finally {
-        expect(TrezorConnect.ethereumGetPublicKey).to.have.been.called()
+        keyring.unlock()
+        TrezorConnect.cancel()
+      }
+      catch(e) {
+        // An unhandled promise rejection will throw because the 
+        // popup has closed
+      }
+      finally {
+        expect(TrezorConnect.getPublicKey).to.have.been.called()
+        done()
       }
     })
   })
@@ -306,45 +308,66 @@ describe('TrezorKeyring', function () {
   })
 
   describe('signTransaction', function () {
+    
     it('should call TrezorConnect.ethereumSignTransaction', function (done) {
 
       chai.spy.on(TrezorConnect, 'ethereumSignTransaction')
 
-      keyring.signTransaction(fakeAccounts[0], fakeTx).catch(() => {
-        // we expect this to be rejected because
-        // we are trying to open a popup from node
+      keyring.signTransaction(fakeAccounts[0], fakeTx).catch(() => {})
+      setTimeout(() => {
+        try {
+          TrezorConnect.cancel()
+        }
+        catch(e) {}
+
         expect(TrezorConnect.ethereumSignTransaction).to.have.been.called()
         done()
-      })
+      }, 100)
     })
   })
+
 
   describe('signMessage', function () {
     it('should call TrezorConnect.ethereumSignMessage', function (done) {
       const sandbox = chai.spy.sandbox()
       sandbox.on(TrezorConnect, 'ethereumSignMessage')
-      keyring.signMessage(fakeAccounts[0], 'some msg').catch(() => {
-        // we expect this to be rejected because
-        // we are trying to open a popup from node
-        expect(TrezorConnect.ethereumSignMessage).to.have.been.called()
-        sandbox.restore()
-        done()
-      })
+      keyring.signMessage(fakeAccounts[0], 'some msg')
+
+      setTimeout(() => {
+        try {
+          TrezorConnect.cancel()
+        }
+        catch(e) {}
+
+        setTimeout(() => {
+          expect(TrezorConnect.ethereumSignMessage).to.have.been.called()
+          sandbox.restore()
+          done()
+        })
+      }, 100)
     })
   })
+  
 
   describe('signPersonalMessage', function () {
     it('should call TrezorConnect.ethereumSignMessage', function (done) {
 
       const sandbox = chai.spy.sandbox()
       sandbox.on(TrezorConnect, 'ethereumSignMessage')
-      keyring.signPersonalMessage(fakeAccounts[0], 'some msg').catch(() => {
-        // we expect this to be rejected because
-        // we are trying to open a popup from node
-        expect(TrezorConnect.ethereumSignMessage).to.have.been.called()
-        sandbox.restore()
-        done()
-      })
+      keyring.signPersonalMessage(fakeAccounts[0], 'some msg')
+
+      setTimeout(() => {
+        try {
+          TrezorConnect.cancel()
+        }
+        catch(e) {}
+
+        setTimeout(() => {
+          expect(TrezorConnect.ethereumSignMessage).to.have.been.called()
+          sandbox.restore()
+          done()
+        })
+      }, 100)
     })
   })
 
@@ -391,5 +414,4 @@ describe('TrezorKeyring', function () {
       assert.equal(accounts.length, 0)
     })
   })
-
 })
