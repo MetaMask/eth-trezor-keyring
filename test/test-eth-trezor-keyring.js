@@ -5,11 +5,15 @@ global.self = require('./self.shim')
 const assert = require('assert').strict
 const chai = require('chai')
 const spies = require('chai-spies')
+const sinon = require('sinon')
+
 const EthereumTx = require('ethereumjs-tx')
 const HDKey = require('hdkey')
 const TrezorConnect = require('trezor-connect').default
 
 const TrezorKeyring = require('..')
+
+const SIGNING_DELAY = 20
 
 const { expect } = chai
 
@@ -117,7 +121,6 @@ describe('TrezorKeyring', function () {
     })
   })
 
-  
   describe('unlock', function () {
     it('should resolve if we have a public key', function (done) {
       keyring.unlock().then((_) => {
@@ -125,24 +128,23 @@ describe('TrezorKeyring', function () {
       })
     })
 
-    it('should call TrezorConnect.getPublicKey if we dont have a public key', async function (done) {
+    it('should call TrezorConnect.getPublicKey if we dont have a public key', async function () {
+      const getPublicKeyStub = sinon.stub(TrezorConnect, 'getPublicKey').callsFake(
+        () => Promise.resolve({}),
+      )
       chai.spy.on(TrezorConnect, 'getPublicKey')
-      keyring.hdk = new HDKey()
 
-      // Kick off async unlock call which we'll immediately cancel 
-      // to confirm getPublicKey has been called
+      keyring.hdk = new HDKey()
       try {
-        keyring.unlock()
-        TrezorConnect.cancel()
+        await keyring.unlock()
+      } catch (e) {
+        // Since we only care about ensuring our function gets called,
+        // we want to ignore warnings due to stub data
       }
-      catch(e) {
-        // An unhandled promise rejection will throw because the 
-        // popup has closed
-      }
-      finally {
-        expect(TrezorConnect.getPublicKey).to.have.been.called()
-        done()
-      }
+
+      expect(TrezorConnect.getPublicKey).to.have.been.called()
+
+      getPublicKeyStub.restore()
     })
   })
 
@@ -308,66 +310,66 @@ describe('TrezorKeyring', function () {
   })
 
   describe('signTransaction', function () {
-    
     it('should call TrezorConnect.ethereumSignTransaction', function (done) {
-
+      const ethereumSignTransactionStub = sinon.stub(TrezorConnect, 'ethereumSignTransaction').callsFake(
+        () => Promise.resolve({}),
+      )
       chai.spy.on(TrezorConnect, 'ethereumSignTransaction')
 
-      keyring.signTransaction(fakeAccounts[0], fakeTx).catch(() => {})
+      keyring.signTransaction(fakeAccounts[0], fakeTx).catch((_) => {
+        // Since we only care about ensuring our function gets called,
+        // we want to ignore warnings due to stub data
+      })
       setTimeout(() => {
-        try {
-          TrezorConnect.cancel()
-        }
-        catch(e) {}
-
         expect(TrezorConnect.ethereumSignTransaction).to.have.been.called()
+        ethereumSignTransactionStub.restore()
         done()
-      }, 100)
+      }, SIGNING_DELAY)
     })
   })
-
 
   describe('signMessage', function () {
     it('should call TrezorConnect.ethereumSignMessage', function (done) {
+      const ethereumSignMessageStub = sinon.stub(TrezorConnect, 'ethereumSignMessage').callsFake(
+        () => Promise.resolve({}),
+      )
       const sandbox = chai.spy.sandbox()
       sandbox.on(TrezorConnect, 'ethereumSignMessage')
-      keyring.signMessage(fakeAccounts[0], 'some msg')
+      keyring.signMessage(fakeAccounts[0], 'some msg').catch((_) => {
+        // Since we only care about ensuring our function gets called,
+        // we want to ignore warnings due to stub data
+      })
 
       setTimeout(() => {
-        try {
-          TrezorConnect.cancel()
-        }
-        catch(e) {}
-
-        setTimeout(() => {
-          expect(TrezorConnect.ethereumSignMessage).to.have.been.called()
-          sandbox.restore()
-          done()
-        })
-      }, 100)
+        expect(TrezorConnect.ethereumSignMessage).to.have.been.called()
+        sandbox.restore()
+        ethereumSignMessageStub.restore()
+        done()
+      }, SIGNING_DELAY)
     })
   })
-  
 
   describe('signPersonalMessage', function () {
     it('should call TrezorConnect.ethereumSignMessage', function (done) {
 
+      const ethereumSignMessageStub = sinon.stub(TrezorConnect, 'ethereumSignMessage').callsFake(
+        () => Promise.resolve({}),
+      )
       const sandbox = chai.spy.sandbox()
       sandbox.on(TrezorConnect, 'ethereumSignMessage')
-      keyring.signPersonalMessage(fakeAccounts[0], 'some msg')
+      keyring.signPersonalMessage(fakeAccounts[0], 'some msg').catch((_) => {
+        // Since we only care about ensuring our function gets called,
+        // we want to ignore warnings due to stub data
+      })
 
       setTimeout(() => {
-        try {
-          TrezorConnect.cancel()
-        }
-        catch(e) {}
-
         setTimeout(() => {
           expect(TrezorConnect.ethereumSignMessage).to.have.been.called()
           sandbox.restore()
+          ethereumSignMessageStub.restore()
           done()
         })
-      }, 100)
+      }, SIGNING_DELAY)
     })
   })
 
