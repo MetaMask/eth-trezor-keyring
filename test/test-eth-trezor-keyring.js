@@ -59,6 +59,10 @@ describe('TrezorKeyring', function () {
     keyring.hdk = fakeHdKey
   })
 
+  afterEach(function () {
+    sinon.restore()
+  })
+
   describe('Keyring.type', function () {
     it('is a class property that returns the type string.', function () {
       const { type } = TrezorKeyring
@@ -99,9 +103,7 @@ describe('TrezorKeyring', function () {
 
   describe('deserialize', function () {
     it('serializes what it deserializes', function (done) {
-
       const someHdPath = `m/44'/60'/0'/1`
-      
       keyring.deserialize({
         page: 10,
         hdPath: someHdPath,
@@ -135,8 +137,6 @@ describe('TrezorKeyring', function () {
       const getPublicKeyStub = sinon.stub(TrezorConnect, 'getPublicKey').callsFake(
         () => Promise.resolve({}),
       )
-      chai.spy.on(TrezorConnect, 'getPublicKey')
-
       keyring.hdk = new HDKey()
       try {
         await keyring.unlock()
@@ -144,9 +144,7 @@ describe('TrezorKeyring', function () {
         // Since we only care about ensuring our function gets called,
         // we want to ignore warnings due to stub data
       }
-
-      expect(TrezorConnect.getPublicKey).to.have.been.called()
-
+      assert(TrezorConnect.getPublicKey.calledOnce)
       getPublicKeyStub.restore()
     })
   })
@@ -314,18 +312,16 @@ describe('TrezorKeyring', function () {
 
   describe('signTransaction', function () {
     it('should call TrezorConnect.ethereumSignTransaction', function (done) {
-      const ethereumSignTransactionStub = sinon.stub(TrezorConnect, 'ethereumSignTransaction').callsFake(
+      sinon.stub(TrezorConnect, 'ethereumSignTransaction').callsFake(
         () => Promise.resolve({}),
       )
-      chai.spy.on(TrezorConnect, 'ethereumSignTransaction')
 
       keyring.signTransaction(fakeAccounts[0], fakeTx).catch((_) => {
         // Since we only care about ensuring our function gets called,
         // we want to ignore warnings due to stub data
       })
       setTimeout(() => {
-        expect(TrezorConnect.ethereumSignTransaction).to.have.been.called()
-        ethereumSignTransactionStub.restore()
+        assert(TrezorConnect.ethereumSignTransaction.calledOnce)
         done()
       }, SIGNING_DELAY)
     })
@@ -333,20 +329,16 @@ describe('TrezorKeyring', function () {
 
   describe('signMessage', function () {
     it('should call TrezorConnect.ethereumSignMessage', function (done) {
-      const ethereumSignMessageStub = sinon.stub(TrezorConnect, 'ethereumSignMessage').callsFake(
+      sinon.stub(TrezorConnect, 'ethereumSignMessage').callsFake(
         () => Promise.resolve({}),
       )
-      const sandbox = chai.spy.sandbox()
-      sandbox.on(TrezorConnect, 'ethereumSignMessage')
       keyring.signMessage(fakeAccounts[0], 'some msg').catch((_) => {
         // Since we only care about ensuring our function gets called,
         // we want to ignore warnings due to stub data
       })
 
       setTimeout(() => {
-        expect(TrezorConnect.ethereumSignMessage).to.have.been.called()
-        sandbox.restore()
-        ethereumSignMessageStub.restore()
+        assert(TrezorConnect.ethereumSignMessage.calledOnce)
         done()
       }, SIGNING_DELAY)
     })
@@ -354,12 +346,9 @@ describe('TrezorKeyring', function () {
 
   describe('signPersonalMessage', function () {
     it('should call TrezorConnect.ethereumSignMessage', function (done) {
-
-      const ethereumSignMessageStub = sinon.stub(TrezorConnect, 'ethereumSignMessage').callsFake(
+      sinon.stub(TrezorConnect, 'ethereumSignMessage').callsFake(
         () => Promise.resolve({}),
       )
-      const sandbox = chai.spy.sandbox()
-      sandbox.on(TrezorConnect, 'ethereumSignMessage')
       keyring.signPersonalMessage(fakeAccounts[0], 'some msg').catch((_) => {
         // Since we only care about ensuring our function gets called,
         // we want to ignore warnings due to stub data
@@ -367,9 +356,7 @@ describe('TrezorKeyring', function () {
 
       setTimeout(() => {
         setTimeout(() => {
-          expect(TrezorConnect.ethereumSignMessage).to.have.been.called()
-          sandbox.restore()
-          ethereumSignMessageStub.restore()
+          assert(TrezorConnect.ethereumSignMessage.calledOnce)
           done()
         })
       }, SIGNING_DELAY)
