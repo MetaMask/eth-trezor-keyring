@@ -51,6 +51,7 @@ const fakeTx = new EthereumTx({
 chai.use(spies)
 
 describe('TrezorKeyring', function () {
+
   let keyring
 
   beforeEach(async function () {
@@ -98,7 +99,9 @@ describe('TrezorKeyring', function () {
 
   describe('deserialize', function () {
     it('serializes what it deserializes', function (done) {
+
       const someHdPath = `m/44'/60'/0'/1`
+      
       keyring.deserialize({
         page: 10,
         hdPath: someHdPath,
