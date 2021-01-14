@@ -145,7 +145,6 @@ describe('TrezorKeyring', function () {
         // we want to ignore warnings due to stub data
       }
       assert(TrezorConnect.getPublicKey.calledOnce)
-      getPublicKeyStub.restore()
     })
   })
 
