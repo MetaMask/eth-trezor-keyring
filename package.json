@@ -36,7 +36,6 @@
     "ethereumjs-util": "^5.1.5",
     "events": "^2.0.0",
     "hdkey": "0.8.0",
-    "sinon": "^9.2.3",
     "trezor-connect": "^8.1.19-extended"
   },
   "devDependencies": {
@@ -48,6 +47,7 @@
     "eslint-plugin-import": "^2.20.1",
     "eslint-plugin-json": "^1.2.0",
     "eslint-plugin-mocha": "^6.2.2",
-    "mocha": "^5.0.4"
+    "mocha": "^5.0.4",
+    "sinon": "^9.2.3"
   }
 }
