@@ -33,7 +33,8 @@
     "ethereumjs-util": "^5.1.5",
     "events": "^2.0.0",
     "hdkey": "0.8.0",
-    "trezor-connect": "^7.0.1"
+    "sinon": "^9.2.3",
+    "trezor-connect": "^8.1.19-extended"
   },
   "devDependencies": {
     "@metamask/eslint-config": "^3.0.0",
