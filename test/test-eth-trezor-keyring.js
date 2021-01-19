@@ -134,7 +134,7 @@ describe('TrezorKeyring', function () {
     })
 
     it('should call TrezorConnect.getPublicKey if we dont have a public key', async function () {
-      const getPublicKeyStub = sinon.stub(TrezorConnect, 'getPublicKey').callsFake(
+      sinon.stub(TrezorConnect, 'getPublicKey').callsFake(
         () => Promise.resolve({}),
       )
       keyring.hdk = new HDKey()
