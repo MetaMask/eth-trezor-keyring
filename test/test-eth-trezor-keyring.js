@@ -165,6 +165,15 @@ describe('TrezorKeyring', function () {
             done()
           })
       })
+
+      it('returns the custom accounts desired', async function () {
+        keyring.setAccountToUnlock(0)
+        await keyring.addAccounts()
+        keyring.setAccountToUnlock(2)
+        const accounts = await keyring.addAccounts()
+        assert.equal(accounts[0], fakeAccounts[0])
+        assert.equal(accounts[1], fakeAccounts[2])
+      })
     })
 
     describe('with a numeric argument', function () {
@@ -202,6 +211,22 @@ describe('TrezorKeyring', function () {
             assert.equal(accountsAfterRemoval.length, 0)
             done()
           })
+      })
+
+      it('should remove only the account requested', async function () {
+        keyring.setAccountToUnlock(0)
+        await keyring.addAccounts()
+        keyring.setAccountToUnlock(1)
+        await keyring.addAccounts()
+        
+        let accounts = await keyring.getAccounts()
+        assert.equal(accounts.length, 2)
+
+        keyring.removeAccount(fakeAccounts[0])
+        accounts = await keyring.getAccounts()
+        
+        assert.equal(accounts.length, 1)
+        assert.equal(accounts[0], fakeAccounts[1])
       })
     })
 

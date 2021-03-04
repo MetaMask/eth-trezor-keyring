@@ -78,17 +78,17 @@ class TrezorKeyring extends EventEmitter {
   }
 
   addAccounts (n = 1) {
-
     return new Promise((resolve, reject) => {
       this.unlock()
         .then((_) => {
           const from = this.unlockedAccount
           const to = from + n
-          this.accounts = []
 
           for (let i = from; i < to; i++) {
             const address = this._addressFromIndex(pathBase, i)
-            this.accounts.push(address)
+            if (!this.accounts.includes(address)) {
+              this.accounts.push(address)
+            }
             this.page = 0
           }
           resolve(this.accounts)
@@ -159,7 +159,6 @@ class TrezorKeyring extends EventEmitter {
 
   // tx is an instance of the ethereumjs-transaction class.
   signTransaction (address, tx) {
-
     return new Promise((resolve, reject) => {
       this.unlock()
         .then((status) => {
