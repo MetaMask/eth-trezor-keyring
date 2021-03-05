@@ -218,13 +218,13 @@ describe('TrezorKeyring', function () {
         await keyring.addAccounts()
         keyring.setAccountToUnlock(1)
         await keyring.addAccounts()
-        
+
         let accounts = await keyring.getAccounts()
         assert.equal(accounts.length, 2)
 
         keyring.removeAccount(fakeAccounts[0])
         accounts = await keyring.getAccounts()
-        
+
         assert.equal(accounts.length, 1)
         assert.equal(accounts[0], fakeAccounts[1])
       })
