@@ -40,8 +40,8 @@ Testing
 -------
 Run the following command:
 
-```
-npm test
+```bash
+yarn test
 ```
 
 
