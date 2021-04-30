@@ -1,6 +1,6 @@
 {
   "name": "@onekeyhq/eth-trezor-keyring",
-  "version": "0.6.1",
+  "version": "0.6.2",
   "description": "A MetaMask compatible keyring, for trezor hardware wallets",
   "files": [
     "index.js"
