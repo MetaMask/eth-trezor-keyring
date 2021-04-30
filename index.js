@@ -185,7 +185,7 @@ class TrezorKeyring extends EventEmitter {
                 const addressSignedWith = ethUtil.toChecksumAddress(`0x${signedTx.from.toString('hex')}`)
                 const correctAddress = ethUtil.toChecksumAddress(address)
                 if (addressSignedWith !== correctAddress) {
-                  reject(new Error('signature doesnt match the right address'))
+                  reject(new Error('签名的 OneKey 设备与绑定的 OneKey 账户不是同一个设备，请确认后重试！'))
                 }
 
                 resolve(signedTx)
