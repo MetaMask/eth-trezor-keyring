@@ -133,10 +133,10 @@
     tiny-worker "^2.3.0"
     ws "^7.4.0"
 
-"@onekeyhq/connect@8.1.29-extended":
-  version "8.1.29-extended"
-  resolved "https://npm.pkg.github.com/download/@onekeyhq/connect/8.1.29-extended/acb957b33af659c6688cd9c85672f549d487ff763dbfdec33c87f3f082b0a5f9#e35e2d9fde22707d6d47597907ed65cdb9344e85"
-  integrity sha512-JBjWym0KTr3AQph9KY0fkcgG0l35vl1C2a0kRAGXK+di1uSfIvRdnETG1f7AODuxT6qJPTUJC4PFsrwaqdS0Ig==
+"@onekeyhq/connect@8.1.30-extended":
+  version "8.1.30-extended"
+  resolved "https://npm.pkg.github.com/download/@onekeyhq/connect/8.1.30-extended/de5a0a137c09c2a26273d1e4335f430b77e5adec8695b351694e91daca37d0a3#5b5ee50cb72e00eadf3551c5a5b701ef8e55dc4a"
+  integrity sha512-pwjtwOuBgg1fVmwfPw0v/cu2dN1UIHOlGUZyygLPRoysgwikmcEQTTAvatY8y38bbOmQLssRn5iagT0Cw/3Gyw==
   dependencies:
     "@babel/runtime" "^7.12.5"
     "@onekeyhq/blockchain-link" "1.0.18"
@@ -545,14 +545,6 @@ bitcoin-ops@^1.3.0:
   version "2.0.0"
   resolved "https://github.com/BitGo/blake2b-wasm#193cdb71656c1a6c7f89b05d0327bb9b758d071b"
   dependencies:
-    nanoassert "^1.0.0"
-
-"blake2b@git+https://github.com/BitGo/blake2b.git#6268e6dd678661e0acc4359e9171b97eb1ebf8ac":
-  version "2.1.3"
-  uid "6268e6dd678661e0acc4359e9171b97eb1ebf8ac"
-  resolved "git+https://github.com/BitGo/blake2b.git#6268e6dd678661e0acc4359e9171b97eb1ebf8ac"
-  dependencies:
-    blake2b-wasm "https://github.com/BitGo/blake2b-wasm#193cdb71656c1a6c7f89b05d0327bb9b758d071b"
     nanoassert "^1.0.0"
 
 "blake2b@https://github.com/BitGo/blake2b#6268e6dd678661e0acc4359e9171b97eb1ebf8ac":
