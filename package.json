@@ -41,15 +41,21 @@
     "trezor-connect": "8.1.23-extended"
   },
   "devDependencies": {
-    "@metamask/eslint-config": "^3.0.0",
+    "@metamask/eslint-config": "^6.0.0",
+    "@metamask/eslint-config-mocha": "^6.0.0",
+    "@metamask/eslint-config-nodejs": "^6.0.0",
     "babel-eslint": "^10.1.0",
     "chai": "^4.1.2",
     "chai-spies": "^1.0.0",
     "eslint": "^7.26.0",
+    "eslint-config-prettier": "^8.3.0",
     "eslint-plugin-import": "^2.20.1",
     "eslint-plugin-json": "^1.2.0",
     "eslint-plugin-mocha": "^6.2.2",
+    "eslint-plugin-node": "^11.1.0",
+    "eslint-plugin-prettier": "^3.4.0",
     "mocha": "^5.0.4",
+    "prettier": "^2.3.0",
     "sinon": "^9.2.3"
   }
 }

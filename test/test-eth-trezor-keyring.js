@@ -1,21 +1,21 @@
-global.window = require('./window.shim')
-global.navigator = require('./navigator.shim')
-global.self = require('./self.shim')
+global.window = require('./window.shim');
+global.navigator = require('./navigator.shim');
+global.self = require('./self.shim');
 
-const assert = require('assert').strict
-const chai = require('chai')
-const spies = require('chai-spies')
-const sinon = require('sinon')
+const assert = require('assert').strict;
+const chai = require('chai');
+const spies = require('chai-spies');
+const sinon = require('sinon');
 
-const EthereumTx = require('ethereumjs-tx')
-const HDKey = require('hdkey')
-const TrezorConnect = require('trezor-connect').default
+const EthereumTx = require('ethereumjs-tx');
+const HDKey = require('hdkey');
+const TrezorConnect = require('trezor-connect').default;
 
-const TrezorKeyring = require('..')
+const TrezorKeyring = require('..');
 
-const SIGNING_DELAY = 20
+const SIGNING_DELAY = 20;
 
-const { expect } = chai
+const { expect } = chai;
 
 const fakeAccounts = [
   '0xF30952A1c534CDE7bC471380065726fa8686dfB3',
@@ -33,10 +33,11 @@ const fakeAccounts = [
   '0xd4F1686961642340a80334b5171d85Bbd390c691',
   '0x6772C4B1E841b295960Bb4662dceD9bb71726357',
   '0x41bEAD6585eCA6c79B553Ca136f0DFA78A006899',
-]
+];
 
-const fakeXPubKey = 'xpub6FnCn6nSzZAw5Tw7cgR9bi15UV96gLZhjDstkXXxvCLsUXBGXPdSnLFbdpq8p9HmGsApME5hQTZ3emM2rnY5agb9rXpVGyy3bdW6EEgAtqt'
-const fakeHdKey = HDKey.fromExtendedKey(fakeXPubKey)
+const fakeXPubKey =
+  'xpub6FnCn6nSzZAw5Tw7cgR9bi15UV96gLZhjDstkXXxvCLsUXBGXPdSnLFbdpq8p9HmGsApME5hQTZ3emM2rnY5agb9rXpVGyy3bdW6EEgAtqt';
+const fakeHdKey = HDKey.fromExtendedKey(fakeXPubKey);
 const fakeTx = new EthereumTx({
   nonce: '0x00',
   gasPrice: '0x09184e72a000',
@@ -46,388 +47,380 @@ const fakeTx = new EthereumTx({
   data: '0x7f7465737432000000000000000000000000000000000000000000000000000000600057',
   // EIP 155 chainId - mainnet: 1, ropsten: 3
   chainId: 1,
-})
+});
 
-chai.use(spies)
+chai.use(spies);
 
 describe('TrezorKeyring', function () {
-
-  let keyring
+  let keyring;
 
   beforeEach(async function () {
-    keyring = new TrezorKeyring()
-    keyring.hdk = fakeHdKey
-  })
+    keyring = new TrezorKeyring();
+    keyring.hdk = fakeHdKey;
+  });
 
   afterEach(function () {
-    sinon.restore()
-  })
+    sinon.restore();
+  });
 
   describe('Keyring.type', function () {
     it('is a class property that returns the type string.', function () {
-      const { type } = TrezorKeyring
-      assert.equal(typeof type, 'string')
-    })
+      const { type } = TrezorKeyring;
+      assert.equal(typeof type, 'string');
+    });
 
     it('returns the correct value', function () {
-      const { type } = keyring
-      const correct = TrezorKeyring.type
-      assert.equal(type, correct)
-    })
-  })
+      const { type } = keyring;
+      const correct = TrezorKeyring.type;
+      assert.equal(type, correct);
+    });
+  });
 
   describe('constructor', function () {
     it('constructs', function (done) {
-      const t = new TrezorKeyring({ hdPath: `m/44'/60'/0'/0` })
-      assert.equal(typeof t, 'object')
-      t.getAccounts()
-        .then((accounts) => {
-          assert.equal(Array.isArray(accounts), true)
-          done()
-        })
-    })
-  })
+      const t = new TrezorKeyring({ hdPath: `m/44'/60'/0'/0` });
+      assert.equal(typeof t, 'object');
+      t.getAccounts().then((accounts) => {
+        assert.equal(Array.isArray(accounts), true);
+        done();
+      });
+    });
+  });
 
   describe('serialize', function () {
     it('serializes an instance', function (done) {
-      keyring.serialize()
-        .then((output) => {
-          assert.equal(output.page, 0)
-          assert.equal(output.hdPath, `m/44'/60'/0'/0`)
-          assert.equal(Array.isArray(output.accounts), true)
-          assert.equal(output.accounts.length, 0)
-          done()
-        })
-    })
-  })
+      keyring.serialize().then((output) => {
+        assert.equal(output.page, 0);
+        assert.equal(output.hdPath, `m/44'/60'/0'/0`);
+        assert.equal(Array.isArray(output.accounts), true);
+        assert.equal(output.accounts.length, 0);
+        done();
+      });
+    });
+  });
 
   describe('deserialize', function () {
     it('serializes what it deserializes', function (done) {
-      const someHdPath = `m/44'/60'/0'/1`
-      keyring.deserialize({
-        page: 10,
-        hdPath: someHdPath,
-        accounts: [],
-      })
-        .then(() => {
-          return keyring.serialize()
-        }).then((serialized) => {
-          assert.equal(serialized.accounts.length, 0, 'restores 0 accounts')
-          assert.equal(serialized.page, 10, 'restores page')
-          assert.equal(serialized.hdPath, someHdPath, 'restores hdPath')
-          done()
+      const someHdPath = `m/44'/60'/0'/1`;
+      keyring
+        .deserialize({
+          page: 10,
+          hdPath: someHdPath,
+          accounts: [],
         })
-    })
-  })
+        .then(() => {
+          return keyring.serialize();
+        })
+        .then((serialized) => {
+          assert.equal(serialized.accounts.length, 0, 'restores 0 accounts');
+          assert.equal(serialized.page, 10, 'restores page');
+          assert.equal(serialized.hdPath, someHdPath, 'restores hdPath');
+          done();
+        });
+    });
+  });
 
   describe('isUnlocked', function () {
     it('should return true if we have a public key', function () {
-      assert.equal(keyring.isUnlocked(), true)
-    })
-  })
+      assert.equal(keyring.isUnlocked(), true);
+    });
+  });
 
   describe('unlock', function () {
     it('should resolve if we have a public key', function (done) {
       keyring.unlock().then((_) => {
-        done()
-      })
-    })
+        done();
+      });
+    });
 
     it('should call TrezorConnect.getPublicKey if we dont have a public key', async function () {
-      sinon.stub(TrezorConnect, 'getPublicKey').callsFake(
-        () => Promise.resolve({}),
-      )
-      keyring.hdk = new HDKey()
+      sinon
+        .stub(TrezorConnect, 'getPublicKey')
+        .callsFake(() => Promise.resolve({}));
+      keyring.hdk = new HDKey();
       try {
-        await keyring.unlock()
+        await keyring.unlock();
       } catch (e) {
         // Since we only care about ensuring our function gets called,
         // we want to ignore warnings due to stub data
       }
-      assert(TrezorConnect.getPublicKey.calledOnce)
-    })
-  })
+      assert(TrezorConnect.getPublicKey.calledOnce);
+    });
+  });
 
   describe('setAccountToUnlock', function () {
     it('should set unlockedAccount', function () {
-      keyring.setAccountToUnlock(3)
-      assert.equal(keyring.unlockedAccount, 3)
-    })
-  })
+      keyring.setAccountToUnlock(3);
+      assert.equal(keyring.unlockedAccount, 3);
+    });
+  });
 
   describe('addAccounts', function () {
     describe('with no arguments', function () {
       it('returns a single account', function (done) {
-        keyring.setAccountToUnlock(0)
-        keyring.addAccounts()
-          .then((accounts) => {
-            assert.equal(accounts.length, 1)
-            done()
-          })
-      })
+        keyring.setAccountToUnlock(0);
+        keyring.addAccounts().then((accounts) => {
+          assert.equal(accounts.length, 1);
+          done();
+        });
+      });
 
       it('returns the custom accounts desired', async function () {
-        keyring.setAccountToUnlock(0)
-        await keyring.addAccounts()
-        keyring.setAccountToUnlock(2)
-        const accounts = await keyring.addAccounts()
-        assert.equal(accounts[0], fakeAccounts[0])
-        assert.equal(accounts[1], fakeAccounts[2])
-      })
-    })
+        keyring.setAccountToUnlock(0);
+        await keyring.addAccounts();
+        keyring.setAccountToUnlock(2);
+        const accounts = await keyring.addAccounts();
+        assert.equal(accounts[0], fakeAccounts[0]);
+        assert.equal(accounts[1], fakeAccounts[2]);
+      });
+    });
 
     describe('with a numeric argument', function () {
       it('returns that number of accounts', function (done) {
-        keyring.setAccountToUnlock(0)
-        keyring.addAccounts(5)
-          .then((accounts) => {
-            assert.equal(accounts.length, 5)
-            done()
-          })
-      })
+        keyring.setAccountToUnlock(0);
+        keyring.addAccounts(5).then((accounts) => {
+          assert.equal(accounts.length, 5);
+          done();
+        });
+      });
 
       it('returns the expected accounts', function (done) {
-        keyring.setAccountToUnlock(0)
-        keyring.addAccounts(3)
-          .then((accounts) => {
-            assert.equal(accounts[0], fakeAccounts[0])
-            assert.equal(accounts[1], fakeAccounts[1])
-            assert.equal(accounts[2], fakeAccounts[2])
-            done()
-          })
-      })
-    })
-  })
+        keyring.setAccountToUnlock(0);
+        keyring.addAccounts(3).then((accounts) => {
+          assert.equal(accounts[0], fakeAccounts[0]);
+          assert.equal(accounts[1], fakeAccounts[1]);
+          assert.equal(accounts[2], fakeAccounts[2]);
+          done();
+        });
+      });
+    });
+  });
 
   describe('removeAccount', function () {
     describe('if the account exists', function () {
       it('should remove that account', function (done) {
-        keyring.setAccountToUnlock(0)
-        keyring.addAccounts()
-          .then(async (accounts) => {
-            assert.equal(accounts.length, 1)
-            keyring.removeAccount(fakeAccounts[0])
-            const accountsAfterRemoval = await keyring.getAccounts()
-            assert.equal(accountsAfterRemoval.length, 0)
-            done()
-          })
-      })
+        keyring.setAccountToUnlock(0);
+        keyring.addAccounts().then(async (accounts) => {
+          assert.equal(accounts.length, 1);
+          keyring.removeAccount(fakeAccounts[0]);
+          const accountsAfterRemoval = await keyring.getAccounts();
+          assert.equal(accountsAfterRemoval.length, 0);
+          done();
+        });
+      });
 
       it('should remove only the account requested', async function () {
-        keyring.setAccountToUnlock(0)
-        await keyring.addAccounts()
-        keyring.setAccountToUnlock(1)
-        await keyring.addAccounts()
+        keyring.setAccountToUnlock(0);
+        await keyring.addAccounts();
+        keyring.setAccountToUnlock(1);
+        await keyring.addAccounts();
 
-        let accounts = await keyring.getAccounts()
-        assert.equal(accounts.length, 2)
+        let accounts = await keyring.getAccounts();
+        assert.equal(accounts.length, 2);
 
-        keyring.removeAccount(fakeAccounts[0])
-        accounts = await keyring.getAccounts()
+        keyring.removeAccount(fakeAccounts[0]);
+        accounts = await keyring.getAccounts();
 
-        assert.equal(accounts.length, 1)
-        assert.equal(accounts[0], fakeAccounts[1])
-      })
-    })
+        assert.equal(accounts.length, 1);
+        assert.equal(accounts[0], fakeAccounts[1]);
+      });
+    });
 
     describe('if the account does not exist', function () {
       it('should throw an error', function () {
-        const unexistingAccount = '0x0000000000000000000000000000000000000000'
+        const unexistingAccount = '0x0000000000000000000000000000000000000000';
         expect((_) => {
-          keyring.removeAccount(unexistingAccount)
-        }).to.throw(`Address ${unexistingAccount} not found in this keyring`)
-      })
-    })
-  })
+          keyring.removeAccount(unexistingAccount);
+        }).to.throw(`Address ${unexistingAccount} not found in this keyring`);
+      });
+    });
+  });
 
   describe('getFirstPage', function () {
     it('should set the currentPage to 1', async function () {
-      await keyring.getFirstPage()
-      assert.equal(keyring.page, 1)
-    })
+      await keyring.getFirstPage();
+      assert.equal(keyring.page, 1);
+    });
 
     it('should return the list of accounts for current page', async function () {
+      const accounts = await keyring.getFirstPage();
 
-      const accounts = await keyring.getFirstPage()
-
-      expect(accounts.length, keyring.perPage)
-      expect(accounts[0].address, fakeAccounts[0])
-      expect(accounts[1].address, fakeAccounts[1])
-      expect(accounts[2].address, fakeAccounts[2])
-      expect(accounts[3].address, fakeAccounts[3])
-      expect(accounts[4].address, fakeAccounts[4])
-    })
-  })
+      expect(accounts.length, keyring.perPage);
+      expect(accounts[0].address, fakeAccounts[0]);
+      expect(accounts[1].address, fakeAccounts[1]);
+      expect(accounts[2].address, fakeAccounts[2]);
+      expect(accounts[3].address, fakeAccounts[3]);
+      expect(accounts[4].address, fakeAccounts[4]);
+    });
+  });
 
   describe('getNextPage', function () {
-
     it('should return the list of accounts for current page', async function () {
-      const accounts = await keyring.getNextPage()
-      expect(accounts.length, keyring.perPage)
-      expect(accounts[0].address, fakeAccounts[0])
-      expect(accounts[1].address, fakeAccounts[1])
-      expect(accounts[2].address, fakeAccounts[2])
-      expect(accounts[3].address, fakeAccounts[3])
-      expect(accounts[4].address, fakeAccounts[4])
-    })
+      const accounts = await keyring.getNextPage();
+      expect(accounts.length, keyring.perPage);
+      expect(accounts[0].address, fakeAccounts[0]);
+      expect(accounts[1].address, fakeAccounts[1]);
+      expect(accounts[2].address, fakeAccounts[2]);
+      expect(accounts[3].address, fakeAccounts[3]);
+      expect(accounts[4].address, fakeAccounts[4]);
+    });
 
     it('should be able to advance to the next page', async function () {
       // manually advance 1 page
-      await keyring.getNextPage()
+      await keyring.getNextPage();
 
-      const accounts = await keyring.getNextPage()
-      expect(accounts.length, keyring.perPage)
-      expect(accounts[0].address, fakeAccounts[keyring.perPage + 0])
-      expect(accounts[1].address, fakeAccounts[keyring.perPage + 1])
-      expect(accounts[2].address, fakeAccounts[keyring.perPage + 2])
-      expect(accounts[3].address, fakeAccounts[keyring.perPage + 3])
-      expect(accounts[4].address, fakeAccounts[keyring.perPage + 4])
-    })
-  })
+      const accounts = await keyring.getNextPage();
+      expect(accounts.length, keyring.perPage);
+      expect(accounts[0].address, fakeAccounts[keyring.perPage + 0]);
+      expect(accounts[1].address, fakeAccounts[keyring.perPage + 1]);
+      expect(accounts[2].address, fakeAccounts[keyring.perPage + 2]);
+      expect(accounts[3].address, fakeAccounts[keyring.perPage + 3]);
+      expect(accounts[4].address, fakeAccounts[keyring.perPage + 4]);
+    });
+  });
 
   describe('getPreviousPage', function () {
-
     it('should return the list of accounts for current page', async function () {
       // manually advance 1 page
-      await keyring.getNextPage()
-      const accounts = await keyring.getPreviousPage()
+      await keyring.getNextPage();
+      const accounts = await keyring.getPreviousPage();
 
-      expect(accounts.length, keyring.perPage)
-      expect(accounts[0].address, fakeAccounts[0])
-      expect(accounts[1].address, fakeAccounts[1])
-      expect(accounts[2].address, fakeAccounts[2])
-      expect(accounts[3].address, fakeAccounts[3])
-      expect(accounts[4].address, fakeAccounts[4])
-    })
+      expect(accounts.length, keyring.perPage);
+      expect(accounts[0].address, fakeAccounts[0]);
+      expect(accounts[1].address, fakeAccounts[1]);
+      expect(accounts[2].address, fakeAccounts[2]);
+      expect(accounts[3].address, fakeAccounts[3]);
+      expect(accounts[4].address, fakeAccounts[4]);
+    });
 
     it('should be able to go back to the previous page', async function () {
       // manually advance 1 page
-      await keyring.getNextPage()
-      const accounts = await keyring.getPreviousPage()
+      await keyring.getNextPage();
+      const accounts = await keyring.getPreviousPage();
 
-      expect(accounts.length, keyring.perPage)
-      expect(accounts[0].address, fakeAccounts[0])
-      expect(accounts[1].address, fakeAccounts[1])
-      expect(accounts[2].address, fakeAccounts[2])
-      expect(accounts[3].address, fakeAccounts[3])
-      expect(accounts[4].address, fakeAccounts[4])
-    })
-  })
+      expect(accounts.length, keyring.perPage);
+      expect(accounts[0].address, fakeAccounts[0]);
+      expect(accounts[1].address, fakeAccounts[1]);
+      expect(accounts[2].address, fakeAccounts[2]);
+      expect(accounts[3].address, fakeAccounts[3]);
+      expect(accounts[4].address, fakeAccounts[4]);
+    });
+  });
 
   describe('getAccounts', function () {
-    const accountIndex = 5
-    let accounts = []
+    const accountIndex = 5;
+    let accounts = [];
     beforeEach(async function () {
-      keyring.setAccountToUnlock(accountIndex)
-      await keyring.addAccounts()
-      accounts = await keyring.getAccounts()
-    })
+      keyring.setAccountToUnlock(accountIndex);
+      await keyring.addAccounts();
+      accounts = await keyring.getAccounts();
+    });
 
     it('returns an array of accounts', function () {
-      assert.equal(Array.isArray(accounts), true)
-      assert.equal(accounts.length, 1)
-    })
+      assert.equal(Array.isArray(accounts), true);
+      assert.equal(accounts.length, 1);
+    });
 
     it('returns the expected', function () {
-      const expectedAccount = fakeAccounts[accountIndex]
-      assert.equal(accounts[0], expectedAccount)
-    })
-  })
+      const expectedAccount = fakeAccounts[accountIndex];
+      assert.equal(accounts[0], expectedAccount);
+    });
+  });
 
   describe('signTransaction', function () {
     it('should call TrezorConnect.ethereumSignTransaction', function (done) {
-      sinon.stub(TrezorConnect, 'ethereumSignTransaction').callsFake(
-        () => Promise.resolve({}),
-      )
+      sinon
+        .stub(TrezorConnect, 'ethereumSignTransaction')
+        .callsFake(() => Promise.resolve({}));
 
       keyring.signTransaction(fakeAccounts[0], fakeTx).catch((_) => {
         // Since we only care about ensuring our function gets called,
         // we want to ignore warnings due to stub data
-      })
+      });
       setTimeout(() => {
-        assert(TrezorConnect.ethereumSignTransaction.calledOnce)
-        done()
-      }, SIGNING_DELAY)
-    })
-  })
+        assert(TrezorConnect.ethereumSignTransaction.calledOnce);
+        done();
+      }, SIGNING_DELAY);
+    });
+  });
 
   describe('signMessage', function () {
     it('should call TrezorConnect.ethereumSignMessage', function (done) {
-      sinon.stub(TrezorConnect, 'ethereumSignMessage').callsFake(
-        () => Promise.resolve({}),
-      )
+      sinon
+        .stub(TrezorConnect, 'ethereumSignMessage')
+        .callsFake(() => Promise.resolve({}));
       keyring.signMessage(fakeAccounts[0], 'some msg').catch((_) => {
         // Since we only care about ensuring our function gets called,
         // we want to ignore warnings due to stub data
-      })
+      });
 
       setTimeout(() => {
-        assert(TrezorConnect.ethereumSignMessage.calledOnce)
-        done()
-      }, SIGNING_DELAY)
-    })
-  })
+        assert(TrezorConnect.ethereumSignMessage.calledOnce);
+        done();
+      }, SIGNING_DELAY);
+    });
+  });
 
   describe('signPersonalMessage', function () {
     it('should call TrezorConnect.ethereumSignMessage', function (done) {
-      sinon.stub(TrezorConnect, 'ethereumSignMessage').callsFake(
-        () => Promise.resolve({}),
-      )
+      sinon
+        .stub(TrezorConnect, 'ethereumSignMessage')
+        .callsFake(() => Promise.resolve({}));
       keyring.signPersonalMessage(fakeAccounts[0], 'some msg').catch((_) => {
         // Since we only care about ensuring our function gets called,
         // we want to ignore warnings due to stub data
-      })
+      });
 
       setTimeout(() => {
         setTimeout(() => {
-          assert(TrezorConnect.ethereumSignMessage.calledOnce)
-          done()
-        })
-      }, SIGNING_DELAY)
-    })
-  })
+          assert(TrezorConnect.ethereumSignMessage.calledOnce);
+          done();
+        });
+      }, SIGNING_DELAY);
+    });
+  });
 
   describe('signTypedData', function () {
     it('should throw an error because it is not supported', async function () {
-      let error = null
+      let error = null;
       try {
-        await keyring.signTypedData()
+        await keyring.signTypedData();
       } catch (e) {
-        error = e
+        error = e;
       }
 
-      expect(error instanceof Error, true)
-      expect(error.toString(), 'Not supported on this device')
-    })
-  })
+      expect(error instanceof Error, true);
+      expect(error.toString(), 'Not supported on this device');
+    });
+  });
 
   describe('exportAccount', function () {
     it('should throw an error because it is not supported', async function () {
-      let error = null
+      let error = null;
       try {
-        await keyring.exportAccount()
+        await keyring.exportAccount();
       } catch (e) {
-        error = e
+        error = e;
       }
 
-      expect(error instanceof Error, true)
-      expect(error.toString(), 'Not supported on this device')
-    })
-  })
+      expect(error instanceof Error, true);
+      expect(error.toString(), 'Not supported on this device');
+    });
+  });
 
   describe('forgetDevice', function () {
     it('should clear the content of the keyring', async function () {
       // Add an account
-      keyring.setAccountToUnlock(0)
-      await keyring.addAccounts()
+      keyring.setAccountToUnlock(0);
+      await keyring.addAccounts();
 
       // Wipe the keyring
-      keyring.forgetDevice()
+      keyring.forgetDevice();
 
-      const accounts = await keyring.getAccounts()
+      const accounts = await keyring.getAccounts();
 
-      assert.equal(keyring.isUnlocked(), false)
-      assert.equal(accounts.length, 0)
-    })
-  })
-})
+      assert.equal(keyring.isUnlocked(), false);
+      assert.equal(accounts.length, 0);
+    });
+  });
+});
