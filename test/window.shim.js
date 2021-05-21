@@ -7,7 +7,7 @@ try {
     },
     addEventListener: (_) => false,
     setTimeout: (_) => false,
-  }
+  };
 } catch (e) {
   module.exports = {
     __TREZOR_CONNECT_SRC: null,
@@ -16,5 +16,5 @@ try {
     },
     addEventListener: (_) => false,
     setTimeout: (_) => false,
-  }
+  };
 }

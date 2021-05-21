@@ -3,29 +3,20 @@ module.exports = {
 
   extends: [
     '@metamask/eslint-config',
-    '@metamask/eslint-config/config/mocha',
-    '@metamask/eslint-config/config/nodejs',
+    '@metamask/eslint-config-mocha',
+    '@metamask/eslint-config-nodejs',
   ],
 
-  parser: 'babel-eslint',
+  plugins: ['json', 'import'],
 
-  parserOptions: {
-    ecmaVersion: 2017,
-  },
-
-  plugins: [
-    'json',
-    'import',
-  ],
-
-  overrides: [{
-    files: [
-      '.eslintrc.js',
-    ],
-    parserOptions: {
-      sourceType: 'script',
+  overrides: [
+    {
+      files: ['.eslintrc.js'],
+      parserOptions: {
+        sourceType: 'script',
+      },
     },
-  }],
+  ],
 
   ignorePatterns: ['dist'],
-}
+};
