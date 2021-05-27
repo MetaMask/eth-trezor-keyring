@@ -10,6 +10,8 @@ const sinon = require('sinon');
 const EthereumTx = require('ethereumjs-tx');
 const HDKey = require('hdkey');
 const TrezorConnect = require('trezor-connect').default;
+const { TransactionFactory } = require('@ethereumjs/tx');
+const Common = require('@ethereumjs/common').default;
 
 const TrezorKeyring = require('..');
 
@@ -48,6 +50,19 @@ const fakeTx = new EthereumTx({
   // EIP 155 chainId - mainnet: 1, ropsten: 3
   chainId: 1,
 });
+
+const common = new Common({ chain: 'mainnet' });
+const newFakeTx = TransactionFactory.fromTxData(
+  {
+    nonce: '0x00',
+    gasPrice: '0x09184e72a000',
+    gasLimit: '0x2710',
+    to: '0x0000000000000000000000000000000000000000',
+    value: '0x00',
+    data: '0x7f7465737432000000000000000000000000000000000000000000000000000000600057',
+  },
+  { common, freeze: false },
+);
 
 chai.use(spies);
 
@@ -328,19 +343,53 @@ describe('TrezorKeyring', function () {
   });
 
   describe('signTransaction', function () {
-    it('should call TrezorConnect.ethereumSignTransaction', function (done) {
-      sinon
-        .stub(TrezorConnect, 'ethereumSignTransaction')
-        .callsFake(() => Promise.resolve({}));
-
-      keyring.signTransaction(fakeAccounts[0], fakeTx).catch((_) => {
-        // Since we only care about ensuring our function gets called,
-        // we want to ignore warnings due to stub data
+    it('should pass serialized transaction to trezor and return signed tx', async function () {
+      sinon.stub(TrezorConnect, 'ethereumSignTransaction').callsFake(() => {
+        return Promise.resolve({
+          success: true,
+          payload: { v: '0x1', r: '0x0', s: '0x0' },
+        });
       });
-      setTimeout(() => {
-        assert(TrezorConnect.ethereumSignTransaction.calledOnce);
-        done();
-      }, SIGNING_DELAY);
+      sinon.stub(fakeTx, 'verifySignature').callsFake(() => true);
+      sinon.stub(fakeTx, 'getSenderAddress').callsFake(() => fakeAccounts[0]);
+
+      const returnedTx = await keyring.signTransaction(fakeAccounts[0], fakeTx);
+      // assert that the v,r,s values got assigned to tx.
+      assert.ok(returnedTx.v);
+      assert.ok(returnedTx.r);
+      assert.ok(returnedTx.s);
+      // ensure we get a older version transaction back
+      assert.equal(returnedTx.getChainId(), 1);
+      assert.equal(returnedTx.common, undefined);
+      assert(TrezorConnect.ethereumSignTransaction.calledOnce);
+    });
+
+    it('should pass serialized newer transaction to trezor and return signed tx', async function () {
+      sinon.stub(TransactionFactory, 'fromTxData').callsFake(() => {
+        // without having a private key/public key pair in this test, we have
+        // mock out this method and return the original tx because we can't
+        // replicate r and s values without the private key.
+        return newFakeTx;
+      });
+      sinon.stub(TrezorConnect, 'ethereumSignTransaction').callsFake(() => {
+        return Promise.resolve({
+          success: true,
+          payload: { v: '0x25', r: '0x0', s: '0x0' },
+        });
+      });
+      sinon
+        .stub(newFakeTx, 'getSenderAddress')
+        .callsFake(() => fakeAccounts[0]);
+      sinon.stub(newFakeTx, 'verifySignature').callsFake(() => true);
+
+      const returnedTx = await keyring.signTransaction(
+        fakeAccounts[0],
+        newFakeTx,
+      );
+      // ensure we get a new version transaction back
+      assert.equal(returnedTx.getChainId, undefined);
+      assert.equal(returnedTx.common.chainIdBN().toString('hex'), '1');
+      assert(TrezorConnect.ethereumSignTransaction.calledOnce);
     });
   });
 
