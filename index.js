@@ -1,8 +1,8 @@
 const { EventEmitter } = require('events');
 const ethUtil = require('ethereumjs-util');
-const Transaction = require('ethereumjs-tx');
 const HDKey = require('hdkey');
 const TrezorConnect = require('trezor-connect').default;
+const { TransactionFactory } = require('@ethereumjs/tx');
 
 const hdPathString = `m/44'/60'/0'/0`;
 const keyringType = 'Trezor Hardware';
@@ -13,6 +13,10 @@ const TREZOR_CONNECT_MANIFEST = {
   email: 'support@metamask.io',
   appUrl: 'https://metamask.io',
 };
+
+function wait(ms) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
 
 class TrezorKeyring extends EventEmitter {
   constructor(opts = {}) {
@@ -167,65 +171,101 @@ class TrezorKeyring extends EventEmitter {
 
   // tx is an instance of the ethereumjs-transaction class.
   signTransaction(address, tx) {
-    return new Promise((resolve, reject) => {
-      this.unlock()
-        .then((status) => {
-          setTimeout(
-            (_) => {
-              TrezorConnect.ethereumSignTransaction({
-                path: this._pathFromAddress(address),
-                transaction: {
-                  to: this._normalize(tx.to),
-                  value: this._normalize(tx.value),
-                  data: this._normalize(tx.data),
-                  chainId: tx._chainId,
-                  nonce: this._normalize(tx.nonce),
-                  gasLimit: this._normalize(tx.gasLimit),
-                  gasPrice: this._normalize(tx.gasPrice),
-                },
-              })
-                .then((response) => {
-                  if (response.success) {
-                    tx.v = response.payload.v;
-                    tx.r = response.payload.r;
-                    tx.s = response.payload.s;
-
-                    const signedTx = new Transaction(tx);
-
-                    const addressSignedWith = ethUtil.toChecksumAddress(
-                      `0x${signedTx.from.toString('hex')}`,
-                    );
-                    const correctAddress = ethUtil.toChecksumAddress(address);
-                    if (addressSignedWith !== correctAddress) {
-                      reject(
-                        new Error('signature doesnt match the right address'),
-                      );
-                    }
-
-                    resolve(signedTx);
-                  } else {
-                    reject(
-                      new Error(
-                        (response.payload && response.payload.error) ||
-                          'Unknown error',
-                      ),
-                    );
-                  }
-                })
-                .catch((e) => {
-                  reject(new Error((e && e.toString()) || 'Unknown error'));
-                });
-
-              // This is necessary to avoid popup collision
-              // between the unlock & sign trezor popups
-            },
-            status === 'just unlocked' ? DELAY_BETWEEN_POPUPS : 0,
-          );
-        })
-        .catch((e) => {
-          reject(new Error((e && e.toString()) || 'Unknown error'));
-        });
+    // transactions built with older versions of ethereumjs-tx have a
+    // getChainId method that newer versions do not. Older versions are mutable
+    // while newer versions default to being immutable. Expected shape and type
+    // of data for v, r and s differ (Buffer (old) vs BN (new))
+    if (typeof tx.getChainId === 'function') {
+      // In this version of ethereumjs-tx we must add the chainId in hex format
+      // to the initial v value. The chainId must be included in the serialized
+      // transaction which is only communicated to ethereumjs-tx in this
+      // value. In newer versions the chainId is communicated via the 'Common'
+      // object.
+      return this._signTransaction(address, tx.getChainId(), tx, (payload) => {
+        tx.v = Buffer.from(payload.v, 'hex');
+        tx.r = Buffer.from(payload.r, 'hex');
+        tx.s = Buffer.from(payload.s, 'hex');
+        return tx;
+      });
+    }
+    // For transactions created by newer versions of @ethereumjs/tx
+    // Note: https://github.com/ethereumjs/ethereumjs-monorepo/issues/1188
+    // It is not strictly necessary to do this additional setting of the v
+    // value. We should be able to get the correct v value in serialization
+    // if the above issue is resolved. Until then this must be set before
+    // calling .serialize(). Note we are creating a temporarily mutable object
+    // forfeiting the benefit of immutability until this happens. We do still
+    // return a Transaction that is frozen if the originally provided
+    // transaction was also frozen.
+    const unfrozenTx = TransactionFactory.fromTxData(tx.toJSON(), {
+      common: tx.common,
+      freeze: false,
     });
+    unfrozenTx.v = new ethUtil.BN(
+      ethUtil.addHexPrefix(tx.common.chainId()),
+      'hex',
+    );
+    return this._signTransaction(
+      address,
+      tx.common.chainIdBN().toNumber(),
+      unfrozenTx,
+      (payload) => {
+        // Because tx will be immutable, first get a plain javascript object that
+        // represents the transaction. Using txData here as it aligns with the
+        // nomenclature of ethereumjs/tx.
+        const txData = tx.toJSON();
+        // The fromTxData utility expects v,r and s to be hex prefixed
+        txData.v = ethUtil.addHexPrefix(payload.v);
+        txData.r = ethUtil.addHexPrefix(payload.r);
+        txData.s = ethUtil.addHexPrefix(payload.s);
+        // Adopt the 'common' option from the original transaction and set the
+        // returned object to be frozen if the original is frozen.
+        return TransactionFactory.fromTxData(txData, {
+          common: tx.common,
+          freeze: Object.isFrozen(tx),
+        });
+      },
+    );
+  }
+
+  // tx is an instance of the ethereumjs-transaction class.
+  async _signTransaction(address, chainId, tx, handleSigning) {
+    try {
+      const status = await this.unlock();
+      await wait(status === 'just unlocked' ? DELAY_BETWEEN_POPUPS : 0);
+      const response = await TrezorConnect.ethereumSignTransaction({
+        path: this._pathFromAddress(address),
+        transaction: {
+          to: this._normalize(tx.to),
+          value: this._normalize(tx.value),
+          data: this._normalize(tx.data),
+          chainId,
+          nonce: this._normalize(tx.nonce),
+          gasLimit: this._normalize(tx.gasLimit),
+          gasPrice: this._normalize(tx.gasPrice),
+        },
+      });
+      if (response.success) {
+        const newOrMutatedTx = handleSigning(response.payload);
+
+        const addressSignedWith = ethUtil.toChecksumAddress(
+          ethUtil.addHexPrefix(
+            newOrMutatedTx.getSenderAddress().toString('hex'),
+          ),
+        );
+        const correctAddress = ethUtil.toChecksumAddress(address);
+        if (addressSignedWith !== correctAddress) {
+          throw new Error("signature doesn't match the right address");
+        }
+
+        return newOrMutatedTx;
+      }
+      throw new Error(
+        (response.payload && response.payload.error) || 'Unknown error',
+      );
+    } catch (e) {
+      throw new Error((e && e.toString()) || 'Unknown error');
+    }
   }
 
   signMessage(withAccount, data) {
@@ -266,7 +306,6 @@ class TrezorKeyring extends EventEmitter {
                   }
                 })
                 .catch((e) => {
-                  console.log('Error while trying to sign a message ', e);
                   reject(new Error((e && e.toString()) || 'Unknown error'));
                 });
               // This is necessary to avoid popup collision
@@ -276,7 +315,6 @@ class TrezorKeyring extends EventEmitter {
           );
         })
         .catch((e) => {
-          console.log('Error while trying to sign a message ', e);
           reject(new Error((e && e.toString()) || 'Unknown error'));
         });
     });
