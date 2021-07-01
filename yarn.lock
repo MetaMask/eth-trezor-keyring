@@ -61,10 +61,10 @@
     "@ethereumjs/common" "^2.2.0"
     ethereumjs-util "^7.0.10"
 
-"@metamask/eslint-config-mocha@^6.0.0":
-  version "6.0.0"
-  resolved "https://registry.yarnpkg.com/@metamask/eslint-config-mocha/-/eslint-config-mocha-6.0.0.tgz#407fc07d4bdfbc79b64989fa9a56a5a671aa4721"
-  integrity sha512-Hf1JYLWsW9JQWWwlLHltK1l0wqLOjCF0z5V2Dwt0oGUjFdAoVm8fOa2TisrgHNHYuAtyd+ZaIEm/xQce1L2ovg==
+"@metamask/eslint-config-mocha@^7.0.0":
+  version "7.0.0"
+  resolved "https://registry.yarnpkg.com/@metamask/eslint-config-mocha/-/eslint-config-mocha-7.0.0.tgz#bc1b0be00b32da2a3d888003c3b4587fff83629e"
+  integrity sha512-fS7WCVd+jytejLHqplnALot46jxozQ75ZgpcTypRmEi1eR1Ue3Km2BWp/EdjVG2wfgous4mbIUK8ZVr/lvCO6w==
 
 "@metamask/eslint-config-nodejs@^6.0.0":
   version "6.0.0"
