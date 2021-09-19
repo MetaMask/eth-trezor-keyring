@@ -431,12 +431,22 @@ describe('TrezorKeyring', function () {
         return tx;
       });
 
-      sinon.stub(TrezorConnect, 'ethereumSignTransaction').callsFake(() => {
-        return Promise.resolve({
-          success: true,
-          payload: expectedRSV,
+      sinon
+        .stub(TrezorConnect, 'ethereumSignTransaction')
+        .callsFake((params) => {
+          expect(params.transaction).to.be.an('object');
+          // chainId must be a number, unlike other variables which can be hex-strings
+          expect(params.transaction)
+            .to.have.property('chainId')
+            .to.satisfy(Number.isInteger);
+          expect(params.transaction).to.have.property('maxFeePerGas');
+          expect(params.transaction).to.have.property('maxPriorityFeePerGas');
+          expect(params.transaction).to.not.have.property('gasPrice');
+          return Promise.resolve({
+            success: true,
+            payload: expectedRSV,
+          });
         });
-      });
 
       const returnedTx = await keyring.signTransaction(
         fakeAccounts[0],
