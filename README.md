@@ -13,6 +13,8 @@ device. However there are a number of differences:
 - It does not support the `signMessage`, `signTypedData` or `exportAccount`
   methods, because TREZOR devices do not support these operations.
 - The method `signPersonalMessage` requires the firmware version 2.0.7+ for TREZOR Model T and 1.6.2+ on TREZOR ONE
+- As of `trezor-connect`: `8.2.1`, passing an EIP-1559 transaction to `signTransaction`
+  requires the firmware version 2.4.2+ for TREZOR Model T, and is unsupported on all firmwares for TREZOR ONE.
 
 ## Using
 
