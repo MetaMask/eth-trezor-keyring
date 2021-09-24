@@ -371,12 +371,14 @@ describe('TrezorKeyring', function () {
         // replicate r and s values without the private key.
         return newFakeTx;
       });
+
       sinon.stub(TrezorConnect, 'ethereumSignTransaction').callsFake(() => {
         return Promise.resolve({
           success: true,
           payload: { v: '0x25', r: '0x0', s: '0x0' },
         });
       });
+
       sinon
         .stub(newFakeTx, 'getSenderAddress')
         .callsFake(() => fakeAccounts[0]);
@@ -398,6 +400,7 @@ describe('TrezorKeyring', function () {
       sinon
         .stub(TrezorConnect, 'ethereumSignMessage')
         .callsFake(() => Promise.resolve({}));
+
       keyring.signMessage(fakeAccounts[0], 'some msg').catch((_) => {
         // Since we only care about ensuring our function gets called,
         // we want to ignore warnings due to stub data
@@ -415,6 +418,7 @@ describe('TrezorKeyring', function () {
       sinon
         .stub(TrezorConnect, 'ethereumSignMessage')
         .callsFake(() => Promise.resolve({}));
+
       keyring.signPersonalMessage(fakeAccounts[0], 'some msg').catch((_) => {
         // Since we only care about ensuring our function gets called,
         // we want to ignore warnings due to stub data
