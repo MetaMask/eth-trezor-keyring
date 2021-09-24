@@ -33,13 +33,21 @@ there are a few others:
 
 - **forgetDevice** : removes all the device info from memory so the next interaction with the keyring will prompt the user to connect the TREZOR device and export the account information
 
-## Testing
+## Contributing
 
-Run the following command:
+### Setup
 
-```bash
-yarn test
-```
+- Install [Node.js](https://nodejs.org) version 12
+  - If you are using [nvm](https://github.com/creationix/nvm#installation) (recommended) running `nvm use` will automatically choose the right node version for you.
+- Install [Yarn v1](https://yarnpkg.com/en/docs/install)
+- Run `yarn setup` to install dependencies and run any requried post-install scripts
+  - **Warning:** Do not use the `yarn` / `yarn install` command directly. Use `yarn setup` instead. The normal install command will skip required post-install scripts, leaving your development environment in an invalid state.
+
+### Testing and Linting
+
+Run `yarn test` to run the tests.
+
+Run `yarn lint` to run the linter, or run `yarn lint:fix` to run the linter and fix any automatically fixable issues.
 
 ## Attributions
 
