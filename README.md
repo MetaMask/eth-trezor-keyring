@@ -1,5 +1,4 @@
-eth-trezor-keyring
-==================
+# eth-trezor-keyring
 
 An implementation of MetaMask's [Keyring interface](https://github.com/MetaMask/eth-simple-keyring#the-keyring-class-protocol), that uses a TREZOR hardware
 wallet for all cryptographic operations.
@@ -15,12 +14,10 @@ device. However there are a number of differences:
   methods, because TREZOR devices do not support these operations.
 - The method `signPersonalMessage` requires the firmware version 2.0.7+ for TREZOR Model T and 1.6.2+ on TREZOR ONE
 
-Using
------
+## Using
 
 In addition to all the known methods from the [Keyring class protocol](https://github.com/MetaMask/eth-simple-keyring#the-keyring-class-protocol),
 there are a few others:
-
 
 - **isUnlocked** : Returns true if we have the public key in memory, which allows to generate the list of accounts at any time
 
@@ -36,16 +33,14 @@ there are a few others:
 
 - **forgetDevice** : removes all the device info from memory so the next interaction with the keyring will prompt the user to connect the TREZOR device and export the account information
 
-Testing
--------
+## Testing
+
 Run the following command:
 
 ```bash
 yarn test
 ```
 
+## Attributions
 
-
-Attributions
--------
 This code was inspired by [eth-ledger-keyring](https://github.com/jamespic/eth-ledger-keyring) and [eth-hd-keyring](https://github.com/MetaMask/eth-hd-keyring)
