@@ -14,7 +14,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/metamask/eth-trezor-keyring.git"
+    "url": "https://github.com/metamask/eth-trezor-keyring.git"
   },
   "license": "ISC",
   "author": "Bruno Barbieri",
@@ -42,6 +42,7 @@
   "devDependencies": {
     "@ethereumjs/common": "^2.2.0",
     "@lavamoat/allow-scripts": "^1.0.6",
+    "@metamask/auto-changelog": "^2.3.0",
     "@metamask/eslint-config": "^8.0.0",
     "@metamask/eslint-config-mocha": "^8.0.0",
     "@metamask/eslint-config-nodejs": "^8.0.0",
