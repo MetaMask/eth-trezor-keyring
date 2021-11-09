@@ -345,6 +345,17 @@ class TrezorKeyring extends EventEmitter {
     this.paths = {};
   }
 
+  /**
+   * Sets the hdPath property to the passed param, if it is an explicitly supported hdPath.
+   * If the passed param is equal to the current hdPath, then this method has no effect. If it
+   * is different, the hdPath is updated, and the hdk, accounts, page and perPage properties are
+   * reset.
+   *
+   * If the passed hdPath is not explicitly supported, an error is thrown.
+   *
+   * @param {string} hdPath
+   * @returns undefined
+   */
   setHdPath(hdPath) {
     if (!ALLOWED_HD_PATHS[hdPath]) {
       throw new Error(
