@@ -476,4 +476,47 @@ describe('TrezorKeyring', function () {
       assert.equal(accounts.length, 0);
     });
   });
+
+  describe('setHdPath', function () {
+    const initialProperties = {
+      hdPath: `m/44'/60'/0'/0`,
+      accounts: ['Account 1'],
+      page: 2,
+      perPage: 10,
+    };
+
+    beforeEach(function () {
+      keyring.deserialize(initialProperties);
+    });
+
+    it('should do nothing if passed an hdPath equal to the current hdPath', async function () {
+      keyring.setHdPath(initialProperties.hdPath);
+      assert.equal(keyring.hdPath, initialProperties.hdPath);
+      assert.deepEqual(keyring.accounts, initialProperties.accounts);
+      assert.equal(keyring.page, initialProperties.page);
+      assert.equal(keyring.perPage, initialProperties.perPage);
+      assert.equal(keyring.hdk._publicKey.toString('hex'), fakeHdKey._publicKey.toString('hex'));
+    });
+
+    it('should update the hdPath and reset account and page properties if passed a new hdPath', async function () {
+      const SLIP0044TestnetPath = `m/44'/1'/0'/0`;
+
+      keyring.setHdPath(SLIP0044TestnetPath);
+
+      assert.equal(keyring.hdPath, SLIP0044TestnetPath);
+      assert.deepEqual(keyring.accounts, []);
+      assert.equal(keyring.page, 0);
+      assert.equal(keyring.perPage, 5);
+      assert.equal(keyring.hdk._publicKey, null);
+    });
+
+    it('should throw an error if passed an unsupported hdPath', async function () {
+      const unsupportedPath = 'unsupported hdPath';
+      try {
+        keyring.setHdPath(unsupportedPath);
+      } catch (error) {
+        assert.equal(error.message, `The setHdPath method does not support setting HD Path to ${unsupportedPath}`)
+      }
+    });
+  });
 });
