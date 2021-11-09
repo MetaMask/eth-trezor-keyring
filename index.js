@@ -345,19 +345,21 @@ class TrezorKeyring extends EventEmitter {
     this.paths = {};
   }
 
-  setHdPath (hdPath) {
+  setHdPath(hdPath) {
     if (!ALLOWED_HD_PATHS[hdPath]) {
-      throw new Error(`The setHdPath method does not support setting HD Path to ${hdPath}`)
+      throw new Error(
+        `The setHdPath method does not support setting HD Path to ${hdPath}`,
+      );
     }
 
     // Reset HDKey if the path changes
     if (this.hdPath !== hdPath) {
-      this.hdk = new HDKey()
+      this.hdk = new HDKey();
       this.accounts = [];
       this.page = 0;
       this.perPage = 5;
     }
-    this.hdPath = hdPath
+    this.hdPath = hdPath;
   }
 
   /* PRIVATE METHODS */

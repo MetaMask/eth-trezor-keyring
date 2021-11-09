@@ -495,7 +495,10 @@ describe('TrezorKeyring', function () {
       assert.deepEqual(keyring.accounts, initialProperties.accounts);
       assert.equal(keyring.page, initialProperties.page);
       assert.equal(keyring.perPage, initialProperties.perPage);
-      assert.equal(keyring.hdk._publicKey.toString('hex'), fakeHdKey._publicKey.toString('hex'));
+      assert.equal(
+        keyring.hdk._publicKey.toString('hex'),
+        fakeHdKey._publicKey.toString('hex'),
+      );
     });
 
     it('should update the hdPath and reset account and page properties if passed a new hdPath', async function () {
@@ -515,7 +518,10 @@ describe('TrezorKeyring', function () {
       try {
         keyring.setHdPath(unsupportedPath);
       } catch (error) {
-        assert.equal(error.message, `The setHdPath method does not support setting HD Path to ${unsupportedPath}`)
+        assert.equal(
+          error.message,
+          `The setHdPath method does not support setting HD Path to ${unsupportedPath}`,
+        );
       }
     });
   });
