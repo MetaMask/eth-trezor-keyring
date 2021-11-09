@@ -5,6 +5,13 @@ const TrezorConnect = require('trezor-connect').default;
 const { TransactionFactory } = require('@ethereumjs/tx');
 
 const hdPathString = `m/44'/60'/0'/0`;
+const SLIP0044TestnetPath = `m/44'/1'/0'/0`;
+
+const ALLOWED_HD_PATHS = {
+  [hdPathString]: true,
+  [SLIP0044TestnetPath]: true,
+};
+
 const keyringType = 'Trezor Hardware';
 const pathBase = 'm';
 const MAX_INDEX = 1000;
@@ -339,6 +346,10 @@ class TrezorKeyring extends EventEmitter {
   }
 
   setHdPath (hdPath) {
+    if (!ALLOWED_HD_PATHS[hdPath]) {
+      throw new Error(`The setHdPath method does not support setting HD Path to ${hdPath}`)
+    }
+
     // Reset HDKey if the path changes
     if (this.hdPath !== hdPath) {
       this.hdk = new HDKey()
