@@ -347,7 +347,7 @@ class TrezorKeyring extends EventEmitter {
 
   /**
    * Set the HD path to be used by the keyring. Only known supported HD paths are allowed.
-   * 
+   *
    * If the given HD path is already the current HD path, nothing happens. Otherwise the new HD
    * path is set, and the wallet state is completely reset.
    *
