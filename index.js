@@ -346,12 +346,12 @@ class TrezorKeyring extends EventEmitter {
   }
 
   /**
-   * Sets the hdPath property to the passed param, if it is an explicitly supported hdPath.
-   * If the passed param is equal to the current hdPath, then this method has no effect. If it
-   * is different, the hdPath is updated, and the hdk, accounts, page and perPage properties are
-   * reset.
+   * Set the HD path to be used by the keyring. Only known supported HD paths are allowed.
+   * 
+   * If the given HD path is already the current HD path, nothing happens. Otherwise the new HD
+   * path is set, and the wallet state is completely reset.
    *
-   * If the passed hdPath is not explicitly supported, an error is thrown.
+   * @throws {Error] Throws if the HD path is not supported.
    *
    * @param {string} hdPath - The HD path to set.
    */
