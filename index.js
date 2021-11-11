@@ -353,7 +353,7 @@ class TrezorKeyring extends EventEmitter {
    *
    * If the passed hdPath is not explicitly supported, an error is thrown.
    *
-   * @param {string} hdPath
+   * @param {string} hdPath - The HD path to set.
    * @returns undefined
    */
   setHdPath(hdPath) {
