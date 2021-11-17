@@ -368,6 +368,8 @@ class TrezorKeyring extends EventEmitter {
       this.accounts = [];
       this.page = 0;
       this.perPage = 5;
+      this.unlockedAccount = 0;
+      this.paths = {};
     }
     this.hdPath = hdPath;
   }

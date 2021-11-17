@@ -484,9 +484,13 @@ describe('TrezorKeyring', function () {
       page: 2,
       perPage: 10,
     };
+    const accountToUnlock = 1;
+    const mockPaths = { '0x123': 1 };
 
     beforeEach(function () {
       keyring.deserialize(initialProperties);
+      keyring.paths = mockPaths;
+      keyring.setAccountToUnlock(accountToUnlock.toString(16));
     });
 
     it('should do nothing if passed an hdPath equal to the current hdPath', async function () {
@@ -499,6 +503,8 @@ describe('TrezorKeyring', function () {
         keyring.hdk._publicKey.toString('hex'),
         fakeHdKey._publicKey.toString('hex'),
       );
+      assert.equal(keyring.unlockedAccount, accountToUnlock);
+      assert.deepEqual(keyring.paths, mockPaths);
     });
 
     it('should update the hdPath and reset account and page properties if passed a new hdPath', async function () {
@@ -511,6 +517,8 @@ describe('TrezorKeyring', function () {
       assert.equal(keyring.page, 0);
       assert.equal(keyring.perPage, 5);
       assert.equal(keyring.hdk._publicKey, null);
+      assert.equal(keyring.unlockedAccount, 0);
+      assert.deepEqual(keyring.paths, {});
     });
 
     it('should throw an error if passed an unsupported hdPath', async function () {
