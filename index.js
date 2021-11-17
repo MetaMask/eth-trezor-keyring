@@ -67,8 +67,13 @@ class TrezorKeyring extends EventEmitter {
     });
   }
 
-  getModel() {
-    return this.model;
+  getEIP1559Support() {
+    // TODO, replace with `return true;`
+    // when Trezor Model One has added support (expected December 2021)
+    if (!this.model) {
+      throw Error("Cannot find Trezor model, please ensure it's connected");
+    }
+    return this.model === "T";
   }
 
   serialize() {
