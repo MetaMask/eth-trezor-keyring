@@ -68,9 +68,6 @@ class TrezorKeyring extends EventEmitter {
   }
 
   getModel() {
-    if (!this.model) {
-      throw Error("Cannot find Trezor model, please ensure it's connected");
-    }
     return this.model;
   }
 
