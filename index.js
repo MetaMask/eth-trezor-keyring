@@ -64,7 +64,21 @@ class TrezorKeyring extends EventEmitter {
         this.model = event.payload.features.model;
       }
     });
-    TrezorConnect.init({ manifest: TREZOR_CONNECT_MANIFEST });
+
+    this.init();
+  }
+
+  async init() {
+    let settings;
+    try {
+      settings = await TrezorConnect.getSettings()
+    } catch (e) {
+      console.log('Trezor connect init error:', e.message);
+    }
+
+    if (!settings?.manifest) {
+      await TrezorConnect.init({ manifest: TREZOR_CONNECT_MANIFEST });
+    }
   }
 
   getModel() {
