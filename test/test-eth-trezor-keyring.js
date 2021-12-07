@@ -71,6 +71,17 @@ const newFakeTx = TransactionFactory.fromTxData(
   { common, freeze: false },
 );
 
+const contractDeploymentFakeTx = TransactionFactory.fromTxData(
+  {
+    nonce: '0x00',
+    gasPrice: '0x09184e72a000',
+    gasLimit: '0x2710',
+    value: '0x00',
+    data: '0x7f7465737432000000000000000000000000000000000000000000000000000000600057',
+  },
+  { common, freeze: false },
+);
+
 const fakeTypeTwoTx = FeeMarketEIP1559Transaction.fromTxData(
   {
     nonce: '0x00',
@@ -414,6 +425,50 @@ describe('TrezorKeyring', function () {
       assert.equal(returnedTx.getChainId, undefined);
       assert.equal(returnedTx.common.chainIdBN().toString('hex'), '1');
       assert(TrezorConnect.ethereumSignTransaction.calledOnce);
+    });
+
+    it('should pass serialized contract deployment transaction to trezor and return signed tx', async function () {
+      sinon.stub(TransactionFactory, 'fromTxData').callsFake(() => {
+        // without having a private key/public key pair in this test, we have
+        // mock out this method and return the original tx because we can't
+        // replicate r and s values without the private key.
+        return contractDeploymentFakeTx;
+      });
+
+      sinon.stub(TrezorConnect, 'ethereumSignTransaction').callsFake(() => {
+        return Promise.resolve({
+          success: true,
+          payload: { v: '0x25', r: '0x0', s: '0x0' },
+        });
+      });
+
+      sinon
+        .stub(contractDeploymentFakeTx, 'getSenderAddress')
+        .callsFake(() => fakeAccounts[0]);
+
+      sinon
+        .stub(contractDeploymentFakeTx, 'verifySignature')
+        .callsFake(() => true);
+
+      const returnedTx = await keyring.signTransaction(
+        fakeAccounts[0],
+        contractDeploymentFakeTx,
+      );
+      // ensure we get a new version transaction back
+      assert.equal(returnedTx.getChainId, undefined);
+      assert.equal(returnedTx.common.chainIdBN().toString('hex'), '1');
+      assert(TrezorConnect.ethereumSignTransaction.calledOnce);
+      assert.deepEqual(
+        TrezorConnect.ethereumSignTransaction.getCall(0).args[0],
+        {
+          path: `m/44'/60'/0'/0/0`,
+          transaction: {
+            ...contractDeploymentFakeTx.toJSON(),
+            to: '0x',
+            chainId: 1,
+          },
+        },
+      );
     });
 
     it('should pass correctly encoded EIP1559 transaction to trezor and return signed tx', async function () {

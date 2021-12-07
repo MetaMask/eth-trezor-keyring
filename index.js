@@ -288,7 +288,11 @@ class TrezorKeyring extends EventEmitter {
     } else {
       // new-style transaction from @ethereumjs/tx package
       // we can just copy tx.toJSON() for everything except chainId, which must be a number
-      transaction = { ...tx.toJSON(), chainId };
+      transaction = {
+        ...tx.toJSON(),
+        chainId,
+        to: this._normalize(tx.to),
+      };
     }
 
     try {
