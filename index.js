@@ -71,6 +71,13 @@ class TrezorKeyring extends EventEmitter {
     return this.model;
   }
 
+  dispose() {
+    // This removes the Trezor Connect iframe from the DOM
+    // This method is not well documented, but the code it calls can be seen
+    // here: https://github.com/trezor/connect/blob/dec4a56af8a65a6059fb5f63fa3c6690d2c37e00/src/js/iframe/builder.js#L181
+    TrezorConnect.dispose();
+  }
+
   serialize() {
     return Promise.resolve({
       hdPath: this.hdPath,
