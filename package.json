@@ -37,7 +37,7 @@
     "@ethereumjs/tx": "^3.2.1",
     "ethereumjs-util": "^7.0.9",
     "hdkey": "0.8.0",
-    "trezor-connect": "8.2.3"
+    "trezor-connect": "8.2.3-extended"
   },
   "devDependencies": {
     "@ethereumjs/common": "^2.4.0",
