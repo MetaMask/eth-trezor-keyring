@@ -37,7 +37,7 @@
     "@ethereumjs/tx": "^3.2.1",
     "ethereumjs-util": "^7.0.9",
     "hdkey": "0.8.0",
-    "trezor-connect": "8.2.1-extended"
+    "trezor-connect": "8.2.3-extended"
   },
   "devDependencies": {
     "@ethereumjs/common": "^2.4.0",
@@ -68,7 +68,10 @@
       "keccak": false,
       "secp256k1": false,
       "@lavamoat/preinstall-always-fail": false,
-      "core-js": false
+      "core-js": false,
+      "blake-hash": false,
+      "tiny-secp256k1": false,
+      "protobufjs": false
     }
   }
 }
