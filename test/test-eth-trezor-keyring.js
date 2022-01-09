@@ -556,16 +556,65 @@ describe('TrezorKeyring', function () {
   });
 
   describe('signTypedData', function () {
-    it('should throw an error because it is not supported', async function () {
+    it('should throw an error on model one because it is not supported', async function () {
+      sinon.stub(keyring, 'getModel').returns('One or 1??');
       let error = null;
       try {
-        await keyring.signTypedData();
+        await keyring.signTypedData(null, null, { version: 'V4' });
       } catch (e) {
         error = e;
       }
 
-      expect(error instanceof Error, true);
-      expect(error.toString(), 'Not supported on this device');
+      expect(error).to.be.an.instanceof(Error);
+      expect(error.toString()).to.contain(
+        'signTypedData is currently only supported on Trezor Model T',
+      );
+    });
+
+    it('should throw an error on signTypedData_v3 because it is not supported', async function () {
+      sinon.stub(keyring, 'getModel').returns('T');
+      let error = null;
+      try {
+        await keyring.signTypedData(null, null, { version: 'V3' });
+      } catch (e) {
+        error = e;
+      }
+
+      expect(error).to.be.an.instanceof(Error);
+      expect(error.toString()).to.contain(
+        'Only signTypedData_v4 is supported on Trezor',
+      );
+    });
+
+    it('should call TrezorConnect.ethereumSignTypedData', async function () {
+      sinon.stub(keyring, 'getModel').returns('T');
+      sinon
+        .stub(TrezorConnect, 'ethereumSignTypedData')
+        .callsFake(async () => ({
+          success: true,
+          payload: { signature: '0x00', address: fakeAccounts[0] },
+        }));
+
+      this.timeout = 60000;
+      await keyring.signTypedData(
+        fakeAccounts[0],
+        // Bare minimum message that @metamask/eth-sig-util accepts
+        { types: {}, primaryType: 'EIP712Domain' },
+        { version: 'V4' },
+      );
+
+      assert(TrezorConnect.ethereumSignTypedData.calledOnce);
+      sinon.assert.calledWithExactly(TrezorConnect.ethereumSignTypedData, {
+        path: "m/44'/60'/0'/0/0",
+        data: {
+          // Bare minimum message that trezor-connect/EIP-712 spec accepts
+          types: { EIP712Domain: [] },
+          primaryType: 'EIP712Domain',
+          domain: {},
+          message: {},
+        },
+        metamask_v4_compat: true,
+      });
     });
   });
 

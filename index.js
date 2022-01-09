@@ -384,9 +384,56 @@ class TrezorKeyring extends EventEmitter {
     });
   }
 
-  signTypedData() {
-    // Waiting on trezor to enable this
-    return Promise.reject(new Error('Not supported on this device'));
+  /**
+   * EIP-712 Sign Typed Data
+   */
+  async signTypedData(address, data, { version }) {
+    if (this.getModel() !== 'T') {
+      throw new Error(
+        'signTypedData is currently only supported on Trezor Model T',
+      );
+    }
+
+    // V5 may be supported in Trezor, so we might be able to add when signTypedData_v5 exists
+    if (version !== 'V4') {
+      throw new Error('Only signTypedData_v4 is supported on Trezor');
+    }
+
+    // set default values for signTypedData
+    // Trezor is stricter than @metamask/eth-sig-util in what it accepts
+    const {
+      types: { EIP712Domain = [], ...otherTypes } = {},
+      message = {},
+      domain = {},
+      primaryType,
+    } = data;
+
+    // This is necessary to avoid popup collision
+    // between the unlock & sign trezor popups
+    const status = await this.unlock();
+    await wait(status === 'just unlocked' ? DELAY_BETWEEN_POPUPS : 0);
+
+    const response = await TrezorConnect.ethereumSignTypedData({
+      path: this._pathFromAddress(address),
+      data: {
+        types: { EIP712Domain, ...otherTypes },
+        message,
+        domain,
+        primaryType,
+      },
+      metamask_v4_compat: true,
+    });
+
+    if (response.success) {
+      if (ethUtil.toChecksumAddress(address) !== response.payload.address) {
+        throw new Error('signature doesnt match the right address');
+      }
+      return response.payload.signature;
+    }
+
+    throw new Error(
+      (response.payload && response.payload.error) || 'Unknown error',
+    );
   }
 
   exportAccount() {
