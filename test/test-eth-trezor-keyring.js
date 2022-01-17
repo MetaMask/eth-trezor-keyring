@@ -108,6 +108,9 @@ describe('TrezorKeyring', function () {
   });
 
   afterEach(function () {
+    if (keyring) {
+      keyring.dispose();
+    }
     sinon.restore();
   });
 
