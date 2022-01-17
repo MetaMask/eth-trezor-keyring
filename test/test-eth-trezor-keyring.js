@@ -560,7 +560,7 @@ describe('TrezorKeyring', function () {
       sinon.stub(keyring, 'getModel').returns('One or 1??');
       let error = null;
       try {
-        await keyring.signTypedData(null, null, { version: 'V4' });
+        await keyring.signTypedData(null, {}, { version: 'V4' });
       } catch (e) {
         error = e;
       }
