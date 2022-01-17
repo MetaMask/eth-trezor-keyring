@@ -67,6 +67,12 @@ class TrezorKeyring extends EventEmitter {
     TrezorConnect.init({ manifest: TREZOR_CONNECT_MANIFEST });
   }
 
+  /**
+   * Gets the model, if known.
+   * This may be `undefined` if the model hasn't been loaded yet.
+   *
+   * @returns {"T" | "1" | undefined}
+   */
   getModel() {
     return this.model;
   }
@@ -407,7 +413,19 @@ class TrezorKeyring extends EventEmitter {
     const status = await this.unlock();
     await wait(status === 'just unlocked' ? DELAY_BETWEEN_POPUPS : 0);
 
-    if (this.getModel() !== 'T') {
+    let model = this.getModel();
+    if (model === undefined) {
+      const features = await TrezorConnect.getFeatures();
+      if (features.success) {
+        model = features.payload.model;
+      } else {
+        throw new Error(
+          (features.payload && features.payload.error) || 'Unknown error',
+        );
+      }
+    }
+
+    if (model !== 'T') {
       throw new Error(
         `signTypedData is currently only supported on Trezor Model T. Your model is "${this.getModel()}"`,
       );
