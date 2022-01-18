@@ -3,6 +3,7 @@ const ethUtil = require('ethereumjs-util');
 const HDKey = require('hdkey');
 const TrezorConnect = require('trezor-connect').default;
 const { TransactionFactory } = require('@ethereumjs/tx');
+const transformTypedData = require('trezor-connect/lib/plugins/ethereum/typedData.js');
 
 const hdPathString = `m/44'/60'/0'/0`;
 const SLIP0044TestnetPath = `m/44'/1'/0'/0`;
@@ -395,9 +396,8 @@ class TrezorKeyring extends EventEmitter {
    */
   async signTypedData(address, data, { version }) {
     // V5 may be supported in Trezor, so we might be able to add when signTypedData_v5 exists
-    if (version !== 'V4') {
-      throw new Error('Only signTypedData_v4 is supported on Trezor');
-    }
+
+    data = transformTypedData(data, version === 'V4')
 
     // set default values for signTypedData
     // Trezor is stricter than @metamask/eth-sig-util in what it accepts
@@ -406,30 +406,14 @@ class TrezorKeyring extends EventEmitter {
       message = {},
       domain = {},
       primaryType,
+      domain_separator_hash,
+      message_hash
     } = data;
 
     // This is necessary to avoid popup collision
     // between the unlock & sign trezor popups
     const status = await this.unlock();
     await wait(status === 'just unlocked' ? DELAY_BETWEEN_POPUPS : 0);
-
-    let model = this.getModel();
-    if (model === undefined) {
-      const features = await TrezorConnect.getFeatures();
-      if (features.success) {
-        model = features.payload.model;
-      } else {
-        throw new Error(
-          (features.payload && features.payload.error) || 'Unknown error',
-        );
-      }
-    }
-
-    if (model !== 'T') {
-      throw new Error(
-        `signTypedData is currently only supported on Trezor Model T. Your model is "${this.getModel()}"`,
-      );
-    }
 
     const response = await TrezorConnect.ethereumSignTypedData({
       path: this._pathFromAddress(address),
@@ -438,6 +422,8 @@ class TrezorKeyring extends EventEmitter {
         message,
         domain,
         primaryType,
+        domain_separator_hash,
+        message_hash
       },
       metamask_v4_compat: true,
     });
