@@ -6,7 +6,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 ### Added
-- Support for EIP-721 signTypedData_v4 for the Model T ([#117](https://github.com/MetaMask/eth-trezor-keyring/pull/117))
+- Support for EIP-721 signTypedData_v4 ([#117](https://github.com/MetaMask/eth-trezor-keyring/pull/117))
 
 ## [0.9.1]
 ### Changed
