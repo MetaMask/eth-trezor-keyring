@@ -3,7 +3,7 @@ const ethUtil = require('ethereumjs-util');
 const HDKey = require('hdkey');
 const TrezorConnect = require('trezor-connect').default;
 const { TransactionFactory } = require('@ethereumjs/tx');
-const transformTypedData = require('trezor-connect/lib/plugins/ethereum/typedData.js');
+const transformTypedData = require('trezor-connect/lib/plugins/ethereum/typedData');
 
 const hdPathString = `m/44'/60'/0'/0`;
 const SLIP0044TestnetPath = `m/44'/1'/0'/0`;
@@ -395,9 +395,7 @@ class TrezorKeyring extends EventEmitter {
    * EIP-712 Sign Typed Data
    */
   async signTypedData(address, data, { version }) {
-    // V5 may be supported in Trezor, so we might be able to add when signTypedData_v5 exists
-
-    data = transformTypedData(data, version === 'V4')
+    const dataWithHashes = transformTypedData(data, version === 'V4');
 
     // set default values for signTypedData
     // Trezor is stricter than @metamask/eth-sig-util in what it accepts
@@ -406,9 +404,10 @@ class TrezorKeyring extends EventEmitter {
       message = {},
       domain = {},
       primaryType,
-      domain_separator_hash,
-      message_hash
-    } = data;
+      // snake_case since Trezor uses Protobuf naming conventions here
+      domain_separator_hash, // eslint-disable-line camelcase
+      message_hash, // eslint-disable-line camelcase
+    } = dataWithHashes;
 
     // This is necessary to avoid popup collision
     // between the unlock & sign trezor popups
@@ -423,7 +422,7 @@ class TrezorKeyring extends EventEmitter {
         domain,
         primaryType,
         domain_separator_hash,
-        message_hash
+        message_hash,
       },
       metamask_v4_compat: true,
     });
