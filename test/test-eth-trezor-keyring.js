@@ -560,7 +560,6 @@ describe('TrezorKeyring', function () {
 
   describe('signTypedData', function () {
     it('should throw an error on signTypedData_v3 because it is not supported', async function () {
-      sinon.stub(keyring, 'getModel').returns('T');
       let error = null;
       try {
         await keyring.signTypedData(null, null, { version: 'V3' });
@@ -575,7 +574,6 @@ describe('TrezorKeyring', function () {
     });
 
     it('should call TrezorConnect.ethereumSignTypedData', async function () {
-      sinon.stub(keyring, 'getModel').returns('T');
       sinon
         .stub(TrezorConnect, 'ethereumSignTypedData')
         .callsFake(async () => ({
@@ -586,8 +584,8 @@ describe('TrezorKeyring', function () {
       this.timeout = 60000;
       await keyring.signTypedData(
         fakeAccounts[0],
-        // Bare minimum message that @metamask/eth-sig-util accepts
-        { types: {}, primaryType: 'EIP712Domain' },
+        // Message with missing data that @metamask/eth-sig-util accepts
+        { types: { EmptyMessage: [] }, primaryType: 'EmptyMessage' },
         { version: 'V4' },
       );
 
@@ -595,50 +593,19 @@ describe('TrezorKeyring', function () {
       sinon.assert.calledWithExactly(TrezorConnect.ethereumSignTypedData, {
         path: "m/44'/60'/0'/0/0",
         data: {
-          // Bare minimum message that trezor-connect/EIP-712 spec accepts
-          types: { EIP712Domain: [] },
-          primaryType: 'EIP712Domain',
+          // Empty message that trezor-connect/EIP-712 spec accepts
+          types: { EIP712Domain: [], EmptyMessage: [] },
+          primaryType: 'EmptyMessage',
           domain: {},
           message: {},
-          domain_separator_hash: '6192106f129ce05c9075d319c1fa6ea9b3ae37cbd0c1ef92e2be7137bb07baa1',
-          message_hash: '6192106f129ce05c9075d319c1fa6ea9b3ae37cbd0c1ef92e2be7137bb07baa1'
+          domain_separator_hash:
+            '6192106f129ce05c9075d319c1fa6ea9b3ae37cbd0c1ef92e2be7137bb07baa1',
+          message_hash:
+            'c9e71eb57cf9fa86ec670283b58cb15326bb6933c8d8e2ecb2c0849021b3ef42',
         },
         metamask_v4_compat: true,
       });
     });
-
-    it('should send domain_hash and message_hash to support Trezor one', async function() {
-      sinon.stub(keyring, 'getModel').returns('T');
-      sinon
-        .stub(TrezorConnect, 'ethereumSignTypedData')
-        .callsFake(async () => ({
-          success: true,
-          payload: { signature: '0x00', address: fakeAccounts[0] },
-        }));
-
-      this.timeout = 60000;
-      await keyring.signTypedData(
-        fakeAccounts[0],
-        // Bare minimum message that @metamask/eth-sig-util accepts
-        { types: {}, primaryType: 'EIP712Domain' },
-        { version: 'V4' },
-      );
-
-      assert(TrezorConnect.ethereumSignTypedData.calledOnce);
-      sinon.assert.calledWithExactly(TrezorConnect.ethereumSignTypedData, {
-        path: "m/44'/60'/0'/0/0",
-        data: {
-          // Bare minimum message that trezor-connect/EIP-712 spec accepts
-          types: { EIP712Domain: [] },
-          primaryType: 'EIP712Domain',
-          domain: {},
-          message: {},
-          domain_separator_hash: '6192106f129ce05c9075d319c1fa6ea9b3ae37cbd0c1ef92e2be7137bb07baa1',
-          message_hash: '6192106f129ce05c9075d319c1fa6ea9b3ae37cbd0c1ef92e2be7137bb07baa1'
-        },
-        metamask_v4_compat: true,
-      });
-    })
   });
 
   describe('exportAccount', function () {
