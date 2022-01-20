@@ -598,12 +598,12 @@ describe('TrezorKeyring', function () {
           primaryType: 'EmptyMessage',
           domain: {},
           message: {},
-          domain_separator_hash:
-            '6192106f129ce05c9075d319c1fa6ea9b3ae37cbd0c1ef92e2be7137bb07baa1',
-          message_hash:
-            'c9e71eb57cf9fa86ec670283b58cb15326bb6933c8d8e2ecb2c0849021b3ef42',
         },
         metamask_v4_compat: true,
+        domain_separator_hash:
+          '6192106f129ce05c9075d319c1fa6ea9b3ae37cbd0c1ef92e2be7137bb07baa1',
+        message_hash:
+          'c9e71eb57cf9fa86ec670283b58cb15326bb6933c8d8e2ecb2c0849021b3ef42',
       });
     });
   });

@@ -421,10 +421,11 @@ class TrezorKeyring extends EventEmitter {
         message,
         domain,
         primaryType,
-        domain_separator_hash,
-        message_hash,
       },
       metamask_v4_compat: true,
+      // Trezor 1 only supports blindly signing hashes
+      domain_separator_hash,
+      message_hash,
     });
 
     if (response.success) {
