@@ -3,6 +3,7 @@ const ethUtil = require('ethereumjs-util');
 const HDKey = require('hdkey');
 const TrezorConnect = require('trezor-connect').default;
 const { TransactionFactory } = require('@ethereumjs/tx');
+const transformTypedData = require('trezor-connect/lib/plugins/ethereum/typedData');
 
 const hdPathString = `m/44'/60'/0'/0`;
 const SLIP0044TestnetPath = `m/44'/1'/0'/0`;
@@ -67,6 +68,12 @@ class TrezorKeyring extends EventEmitter {
     TrezorConnect.init({ manifest: TREZOR_CONNECT_MANIFEST });
   }
 
+  /**
+   * Gets the model, if known.
+   * This may be `undefined` if the model hasn't been loaded yet.
+   *
+   * @returns {"T" | "1" | undefined}
+   */
   getModel() {
     return this.model;
   }
@@ -384,9 +391,53 @@ class TrezorKeyring extends EventEmitter {
     });
   }
 
-  signTypedData() {
-    // Waiting on trezor to enable this
-    return Promise.reject(new Error('Not supported on this device'));
+  /**
+   * EIP-712 Sign Typed Data
+   */
+  async signTypedData(address, data, { version }) {
+    const dataWithHashes = transformTypedData(data, version === 'V4');
+
+    // set default values for signTypedData
+    // Trezor is stricter than @metamask/eth-sig-util in what it accepts
+    const {
+      types: { EIP712Domain = [], ...otherTypes } = {},
+      message = {},
+      domain = {},
+      primaryType,
+      // snake_case since Trezor uses Protobuf naming conventions here
+      domain_separator_hash, // eslint-disable-line camelcase
+      message_hash, // eslint-disable-line camelcase
+    } = dataWithHashes;
+
+    // This is necessary to avoid popup collision
+    // between the unlock & sign trezor popups
+    const status = await this.unlock();
+    await wait(status === 'just unlocked' ? DELAY_BETWEEN_POPUPS : 0);
+
+    const response = await TrezorConnect.ethereumSignTypedData({
+      path: this._pathFromAddress(address),
+      data: {
+        types: { EIP712Domain, ...otherTypes },
+        message,
+        domain,
+        primaryType,
+      },
+      metamask_v4_compat: true,
+      // Trezor 1 only supports blindly signing hashes
+      domain_separator_hash,
+      message_hash,
+    });
+
+    if (response.success) {
+      if (ethUtil.toChecksumAddress(address) !== response.payload.address) {
+        throw new Error('signature doesnt match the right address');
+      }
+      return response.payload.signature;
+    }
+
+    throw new Error(
+      (response.payload && response.payload.error) || 'Unknown error',
+    );
   }
 
   exportAccount() {
