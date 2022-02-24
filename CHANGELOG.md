@@ -6,6 +6,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- Update trezor connect to 8.2.7-extended.
+  - Fixes a bug where Trezor Connect wouldn't tell users to update,
+    if their firmware was too old for new features. [trezor/connect#1042](https://github.com/trezor/connect/pull/1042)
+  - Adds compatibility for EIP-712 domain-only signing
+    (requires firmware 2.4.4/1.10.6 (currently unreleased)) [trezor/connect#1033](https://github.com/trezor/connect/pull/1033)
+
 ## [0.10.0]
 ### Added
 - Support for EIP-721 signTypedData_v4 ([#117](https://github.com/MetaMask/eth-trezor-keyring/pull/117))
