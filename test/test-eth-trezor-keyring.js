@@ -128,13 +128,13 @@ describe('TrezorKeyring', function () {
   });
 
   describe('constructor', function () {
-    it('constructs', function (done) {
-      const t = new TrezorKeyring({ hdPath: `m/44'/60'/0'/0` });
-      assert.equal(typeof t, 'object');
-      t.getAccounts().then((accounts) => {
-        assert.equal(Array.isArray(accounts), true);
-        done();
-      });
+    it('constructs', async function () {
+      // dispose of already created keyring, since only one can be running at a time
+      keyring.dispose();
+      keyring = new TrezorKeyring({ hdPath: `m/44'/60'/0'/0` });
+      assert.equal(typeof keyring, 'object');
+      const accounts = await keyring.getAccounts();
+      assert.equal(Array.isArray(accounts), true);
     });
   });
 
