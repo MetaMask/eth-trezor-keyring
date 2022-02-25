@@ -5,14 +5,16 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+### Changed
+- Node 14 is now the minimum required version
 
 ### Fixed
-
 - Update trezor connect to 8.2.7-extended.
   - Fixes a bug where Trezor Connect wouldn't tell users to update,
     if their firmware was too old for new features. [trezor/connect#1042](https://github.com/trezor/connect/pull/1042)
   - Adds compatibility for EIP-712 domain-only signing
     (requires firmware 2.4.4/1.10.6 (currently unreleased)) [trezor/connect#1033](https://github.com/trezor/connect/pull/1033)
+  - Drops Node 12 support (part of `@trezor/rollout@1.3.0`)
 
 ## [0.10.0]
 ### Added
