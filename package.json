@@ -8,13 +8,13 @@
     "trezor",
     "metamask"
   ],
-  "homepage": "https://github.com/metamask/eth-trezor-keyring#readme",
+  "homepage": "https://github.com/MetaMask/eth-trezor-keyring#readme",
   "bugs": {
-    "url": "https://github.com/metamask/eth-trezor-keyring/issues"
+    "url": "https://github.com/MetaMask/eth-trezor-keyring/issues"
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/metamask/eth-trezor-keyring.git"
+    "url": "https://github.com/MetaMask/eth-trezor-keyring.git"
   },
   "license": "ISC",
   "author": "Bruno Barbieri",
