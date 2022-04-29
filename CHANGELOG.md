@@ -7,12 +7,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ## [0.10.1]
-### Uncategorized
-- Bump cross-fetch from 3.1.4 to 3.1.5 ([#126](https://github.com/MetaMask/eth-trezor-keyring/pull/126))
-- Bump @metamask/eth-sig-util from 4.0.0 to 4.0.1 ([#125](https://github.com/MetaMask/eth-trezor-keyring/pull/125))
-- Bump pathval from 1.1.0 to 1.1.1 ([#119](https://github.com/MetaMask/eth-trezor-keyring/pull/119))
-- Bump minimist from 1.2.5 to 1.2.6 ([#124](https://github.com/MetaMask/eth-trezor-keyring/pull/124))
-- doc: EIP-1559 is supported by Trezor Model 1 ([#122](https://github.com/MetaMask/eth-trezor-keyring/pull/122))
+### Security
+- Bump `cross-fetch` from 3.1.4 to 3.1.5 ([#126](https://github.com/MetaMask/eth-trezor-keyring/pull/126))
+  - `cross-fetch` 3.1.5 bumps its dependency on `node-fetch` to 2.6.7, which fixes a security vulnerability with `node-fetch`.
 
 ## [0.10.0]
 ### Added
