@@ -266,7 +266,7 @@
     events "^3.3.0"
     tslib "^2.3.1"
 
-"@trezor/connect@9.0.0-beta.4":
+"@trezor/connect@9.0.0-beta.4", "@trezor/connect@^9.0.0-beta.4":
   version "9.0.0-beta.4"
   resolved "https://registry.yarnpkg.com/@trezor/connect/-/connect-9.0.0-beta.4.tgz#17ca3d97d05802d3a2d8b250aebd5dd28f1a052d"
   integrity sha512-wJrnNUkZkLB0oRYE3Zd5fapz0EUdvUjWB04WGCoOb4cMDb2F6x680LcMA50qj9v06S40Vxfj1V/pOjhJ26Ekag==
