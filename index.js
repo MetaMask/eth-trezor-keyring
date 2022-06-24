@@ -1,9 +1,9 @@
 const { EventEmitter } = require('events');
 const ethUtil = require('ethereumjs-util');
 const HDKey = require('hdkey');
-const TrezorConnect = require('trezor-connect').default;
+const TrezorConnect = require('@trezor/connect').default;
 const { TransactionFactory } = require('@ethereumjs/tx');
-const transformTypedData = require('trezor-connect/lib/plugins/ethereum/typedData');
+const transformTypedData = require('@trezor/connect-plugin-ethereum/lib');
 
 const hdPathString = `m/44'/60'/0'/0`;
 const SLIP0044TestnetPath = `m/44'/1'/0'/0`;
@@ -280,7 +280,7 @@ class TrezorKeyring extends EventEmitter {
    * @param {string} address - Hex string address.
    * @param {number} chainId - Chain ID
    * @param {Transaction} tx - Instance of either new-style or old-style ethereumjs transaction.
-   * @param {(import('trezor-connect').EthereumSignedTx) => Transaction} handleSigning - Converts signed transaction
+   * @param {(import('@trezor/connect').EthereumSignedTx) => Transaction} handleSigning - Converts signed transaction
    * to the same new-style or old-style ethereumjs-tx.
    * @returns {Promise<Transaction>} The signed transaction, an instance of either new-style or old-style
    * ethereumjs transaction.
