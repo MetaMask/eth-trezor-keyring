@@ -22,6 +22,31 @@ const TREZOR_CONNECT_MANIFEST = {
   appUrl: 'https://metamask.io',
 };
 
+/**
+ * Distinguish the OneKey hardware wallet by the serialNo prefix
+ * @param {*} features
+ * @returns {'mini' | 'touch' | 'classic' | 'trezor'}
+ */
+function isOneKeyDevice(features) {
+  const serialNo = features.serial_no;
+  if (serialNo) {
+    const miniFlag = serialNo.slice(0, 2);
+    if (miniFlag.toLowerCase() === 'mi') {
+      return 'mini';
+    }
+
+    if (miniFlag.toLowerCase() === 'tc') {
+      return 'touch';
+    }
+  }
+  const name = features.ble_name;
+  const re = /(BixinKey\d{10})|(K\d{4})|(T\d{4})/iu;
+  if (name && re.exec(name)) {
+    return 'classic';
+  }
+  return 'trezor';
+}
+
 function wait(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
@@ -58,11 +83,14 @@ class TrezorKeyring extends EventEmitter {
     this.perPage = 5;
     this.unlockedAccount = 0;
     this.paths = {};
+    this.vendor = 'trezor';
     this.deserialize(opts);
 
     TrezorConnect.on('DEVICE_EVENT', (event) => {
       if (event && event.payload && event.payload.features) {
         this.model = event.payload.features.model;
+        const vendor = isOneKeyDevice(event.payload.features);
+        this.vendor = vendor === 'trezor' ? 'trezor' : 'onekey';
       }
     });
     TrezorConnect.init({ manifest: TREZOR_CONNECT_MANIFEST });
@@ -76,6 +104,15 @@ class TrezorKeyring extends EventEmitter {
    */
   getModel() {
     return this.model;
+  }
+
+  /**
+   * Gets the vendor, if known.
+   *
+   * @returns {"trezor" | "onekey"}
+   */
+  getVendor() {
+    return this.vendor;
   }
 
   dispose() {
