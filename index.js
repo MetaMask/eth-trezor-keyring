@@ -158,13 +158,15 @@ class TrezorKeyring extends EventEmitter {
             this.hdk.publicKey = Buffer.from(response.payload.publicKey, 'hex');
             this.hdk.chainCode = Buffer.from(response.payload.chainCode, 'hex');
             // Determine the vendor for statistics
-            TrezorConnect.getFeatures((features) => {
-              if (features.success) {
-                this.vendor = isOneKeyDevice(features.payload);
-              }
-            }).finally(() => {
-              resolve('just unlocked');
-            });
+            TrezorConnect.getFeatures()
+              .then((features) => {
+                if (features.success) {
+                  this.vendor = isOneKeyDevice(features.payload);
+                }
+              })
+              .finally(() => {
+                resolve('just unlocked');
+              });
           } else {
             reject(
               new Error(
