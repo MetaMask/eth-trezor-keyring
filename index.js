@@ -22,27 +22,28 @@ const TREZOR_CONNECT_MANIFEST = {
   appUrl: 'https://metamask.io',
 };
 
+const oneKeySpecialVersion = 99;
 /**
  * Distinguish the OneKey hardware wallet by the serialNo prefix
  * @param {*} features
  * @returns {'mini' | 'touch' | 'classic' | 'trezor'}
  */
 function isOneKeyDevice(features) {
-  const serialNo = features.serial_no;
-  if (serialNo) {
-    const miniFlag = serialNo.slice(0, 2);
-    if (miniFlag.toLowerCase() === 'mi') {
-      return 'mini';
-    }
-
-    if (miniFlag.toLowerCase() === 'tc') {
-      return 'touch';
-    }
+  if (
+    !features ||
+    typeof features !== 'object' ||
+    !features.minor_version ||
+    !features.patch_version
+  ) {
+    return 'trezor';
   }
-  const name = features.ble_name;
-  const re = /(BixinKey\d{10})|(K\d{4})|(T\d{4})/iu;
-  if (name && re.exec(name)) {
-    return 'classic';
+  const minorVersion = Number(features.minor_version);
+  const patchVersion = Number(features.patch_version);
+  if (
+    minorVersion === oneKeySpecialVersion &&
+    patchVersion === oneKeySpecialVersion
+  ) {
+    return 'onekey';
   }
   return 'trezor';
 }
@@ -83,14 +84,12 @@ class TrezorKeyring extends EventEmitter {
     this.perPage = 5;
     this.unlockedAccount = 0;
     this.paths = {};
-    this.vendor = 'trezor';
+    this.vendor = undefined;
     this.deserialize(opts);
 
     TrezorConnect.on('DEVICE_EVENT', (event) => {
       if (event && event.payload && event.payload.features) {
         this.model = event.payload.features.model;
-        const vendor = isOneKeyDevice(event.payload.features);
-        this.vendor = vendor === 'trezor' ? 'trezor' : 'onekey';
       }
     });
     TrezorConnect.init({ manifest: TREZOR_CONNECT_MANIFEST });
@@ -158,7 +157,14 @@ class TrezorKeyring extends EventEmitter {
           if (response.success) {
             this.hdk.publicKey = Buffer.from(response.payload.publicKey, 'hex');
             this.hdk.chainCode = Buffer.from(response.payload.chainCode, 'hex');
-            resolve('just unlocked');
+            // Determine the vendor for statistics
+            TrezorConnect.getFeatures((features) => {
+              if (features.success) {
+                this.vendor = isOneKeyDevice(features.payload);
+              }
+            }).finally(() => {
+              resolve('just unlocked');
+            });
           } else {
             reject(
               new Error(
