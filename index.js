@@ -23,6 +23,7 @@ const TREZOR_CONNECT_MANIFEST = {
 };
 
 const oneKeySpecialVersion = 99;
+const oneKeyVendor = 'onekey.so';
 /**
  * Distinguish the OneKey hardware wallet by the serialNo prefix
  * @param {*} features
@@ -39,9 +40,11 @@ function isOneKeyDevice(features) {
   }
   const minorVersion = Number(features.minor_version);
   const patchVersion = Number(features.patch_version);
+  const vendor = features.vendor || '';
   if (
-    minorVersion === oneKeySpecialVersion &&
-    patchVersion === oneKeySpecialVersion
+    vendor === oneKeyVendor ||
+    (minorVersion === oneKeySpecialVersion &&
+      patchVersion === oneKeySpecialVersion)
   ) {
     return 'onekey';
   }
