@@ -24,32 +24,6 @@ const TREZOR_CONNECT_MANIFEST = {
 
 const oneKeySpecialVersion = 99;
 const oneKeyVendor = 'onekey.so';
-/**
- * Distinguish the OneKey hardware wallet by the serialNo prefix
- * @param {*} features
- * @returns {'mini' | 'touch' | 'classic' | 'trezor'}
- */
-function isOneKeyDevice(features) {
-  if (
-    !features ||
-    typeof features !== 'object' ||
-    !features.minor_version ||
-    !features.patch_version
-  ) {
-    return 'trezor';
-  }
-  const minorVersion = Number(features.minor_version);
-  const patchVersion = Number(features.patch_version);
-  const vendor = features.vendor || '';
-  if (
-    vendor === oneKeyVendor ||
-    (minorVersion === oneKeySpecialVersion &&
-      patchVersion === oneKeySpecialVersion)
-  ) {
-    return 'onekey';
-  }
-  return 'trezor';
-}
 
 function wait(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
@@ -117,6 +91,44 @@ class TrezorKeyring extends EventEmitter {
     return this.vendor;
   }
 
+  /**
+   * set the vendor name of the hardware wallet
+   * @param {*} features
+   * @returns {'onekey' | 'trezor'}
+   */
+  __setVendor(features) {
+    // If the value of features is null, set vendor to the default value
+    if (features === null) {
+      this.vendor = undefined;
+      return;
+    }
+
+    // No special field, default is trezor device
+    if (
+      !features ||
+      typeof features !== 'object' ||
+      !features.minor_version ||
+      !features.patch_version
+    ) {
+      this.vendor = 'trezor';
+      return;
+    }
+
+    const minorVersion = Number(features.minor_version);
+    const patchVersion = Number(features.patch_version);
+    const vendor = features.vendor || '';
+    if (
+      vendor === oneKeyVendor ||
+      (minorVersion === oneKeySpecialVersion &&
+        patchVersion === oneKeySpecialVersion)
+    ) {
+      this.vendor = 'onekey';
+      return;
+    }
+
+    this.vendor = 'trezor';
+  }
+
   dispose() {
     // This removes the Trezor Connect iframe from the DOM
     // This method is not well documented, but the code it calls can be seen
@@ -163,9 +175,13 @@ class TrezorKeyring extends EventEmitter {
             // Determine the vendor for statistics
             TrezorConnect.getFeatures()
               .then((features) => {
-                if (features.success) {
-                  this.vendor = isOneKeyDevice(features.payload);
-                }
+                const featuresPayload = features.success
+                  ? features.payload
+                  : null;
+                this.__setVendor(featuresPayload);
+              })
+              .catch(() => {
+                this.__setVendor(null);
               })
               .finally(() => {
                 resolve('just unlocked');
