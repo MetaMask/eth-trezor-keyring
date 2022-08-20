@@ -98,29 +98,22 @@ class TrezorKeyring extends EventEmitter {
    */
   __setVendor(features) {
     // If the value of features is null, set vendor to the default value
-    if (features === null) {
+    if (!features) {
       this.vendor = undefined;
       return;
     }
 
     // No special field, default is trezor device
     if (
-      !features ||
-      typeof features !== 'object' ||
-      !features.minor_version ||
-      !features.patch_version
+      !features?.minor_version ||
+      !features?.patch_version
     ) {
-      this.vendor = 'trezor';
-      return;
+      return 'trezor';
     }
 
-    const minorVersion = Number(features.minor_version);
-    const patchVersion = Number(features.patch_version);
-    const vendor = features.vendor || '';
     if (
-      vendor === oneKeyVendor ||
-      (minorVersion === oneKeySpecialVersion &&
-        patchVersion === oneKeySpecialVersion)
+      this.vendor === oneKeyVendor
+      || (features.minor_version === oneKeySpecialVersion && features.patch_version === oneKeySpecialVersion)
     ) {
       this.vendor = 'onekey';
       return;
