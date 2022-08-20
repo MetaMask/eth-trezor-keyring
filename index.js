@@ -87,39 +87,57 @@ class TrezorKeyring extends EventEmitter {
    *
    * @returns {"trezor" | "onekey"}
    */
-  getVendor() {
-    return this.vendor;
+  async getVendor() {
+    return this.vendor || (this.vendor = await this.fetchVendor());
   }
 
   /**
-   * set the vendor name of the hardware wallet
-   * @param {*} features
+   * fetch vendor by call getFeatures
+   * @param {object} features
    * @returns {'onekey' | 'trezor'}
    */
-  __setVendor(features) {
+  fetchVendor() {
+    return new Promise((resolve) => {
+      TrezorConnect.getFeatures()
+        .then((response) => {
+          if (!response.success) {
+            resolve(null);
+            return;
+          }
+          const vendor = this.__getVendor(response.payload);
+          resolve(vendor);
+        })
+        .catch(() => {
+          resolve(null);
+        });
+    });
+  }
+
+  /**
+   * get the vendor name of the hardware wallet
+   * @param {object} features
+   * @returns {'onekey' | 'trezor'}
+   */
+  __getVendor(features) {
     // If the value of features is null, set vendor to the default value
     if (!features) {
-      this.vendor = undefined;
-      return;
+      return undefined;
     }
 
     // No special field, default is trezor device
-    if (
-      !features?.minor_version ||
-      !features?.patch_version
-    ) {
+    if (!features.minor_version || !features.patch_version) {
       return 'trezor';
     }
 
     if (
-      this.vendor === oneKeyVendor
-      || (features.minor_version === oneKeySpecialVersion && features.patch_version === oneKeySpecialVersion)
+      features.vendor === oneKeyVendor ||
+      (features.minor_version === oneKeySpecialVersion &&
+        features.patch_version === oneKeySpecialVersion)
     ) {
-      this.vendor = 'onekey';
-      return;
+      return 'onekey';
     }
 
-    this.vendor = 'trezor';
+    return 'trezor';
   }
 
   dispose() {
@@ -165,20 +183,7 @@ class TrezorKeyring extends EventEmitter {
           if (response.success) {
             this.hdk.publicKey = Buffer.from(response.payload.publicKey, 'hex');
             this.hdk.chainCode = Buffer.from(response.payload.chainCode, 'hex');
-            // Determine the vendor for statistics
-            TrezorConnect.getFeatures()
-              .then((features) => {
-                const featuresPayload = features.success
-                  ? features.payload
-                  : null;
-                this.__setVendor(featuresPayload);
-              })
-              .catch(() => {
-                this.__setVendor(null);
-              })
-              .finally(() => {
-                resolve('just unlocked');
-              });
+            resolve('just unlocked');
           } else {
             reject(
               new Error(
