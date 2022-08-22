@@ -25,6 +25,33 @@ const TREZOR_CONNECT_MANIFEST = {
 const oneKeySpecialVersion = 99;
 const oneKeyVendor = 'onekey.so';
 
+/**
+ * get the vendor name of the hardware wallet
+ * @param {object} features
+ * @returns {'onekey' | 'trezor'}
+ */
+const getVendorName = (features) => {
+  // If the value of features is null, set vendor to the default value
+  if (!features) {
+    return undefined;
+  }
+
+  // No special field, default is trezor device
+  if (!features.minor_version || !features.patch_version) {
+    return 'trezor';
+  }
+
+  if (
+    features.vendor === oneKeyVendor ||
+    (features.minor_version === oneKeySpecialVersion &&
+      features.patch_version === oneKeySpecialVersion)
+  ) {
+    return 'onekey';
+  }
+
+  return 'trezor';
+};
+
 function wait(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
@@ -94,7 +121,7 @@ class TrezorKeyring extends EventEmitter {
   /**
    * fetch vendor by call getFeatures
    * @param {object} features
-   * @returns {'onekey' | 'trezor'}
+   * @returns {'onekey' | 'trezor' | null}
    */
   fetchVendor() {
     return new Promise((resolve) => {
@@ -104,41 +131,13 @@ class TrezorKeyring extends EventEmitter {
             resolve(null);
             return;
           }
-          const features = response.payload;
-          const vendor = this.__getVendor(features);
+          const vendor = getVendorName(response.payload);
           resolve(vendor);
         })
         .catch(() => {
           resolve(null);
         });
     });
-  }
-
-  /**
-   * get the vendor name of the hardware wallet
-   * @param {object} features
-   * @returns {'onekey' | 'trezor'}
-   */
-  __getVendor(features) {
-    // If the value of features is null, set vendor to the default value
-    if (!features) {
-      return undefined;
-    }
-
-    // No special field, default is trezor device
-    if (!features.minor_version || !features.patch_version) {
-      return 'trezor';
-    }
-
-    if (
-      features.vendor === oneKeyVendor ||
-      (features.minor_version === oneKeySpecialVersion &&
-        features.patch_version === oneKeySpecialVersion)
-    ) {
-      return 'onekey';
-    }
-
-    return 'trezor';
   }
 
   dispose() {
