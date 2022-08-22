@@ -124,20 +124,17 @@ class TrezorKeyring extends EventEmitter {
    * @returns {'onekey' | 'trezor' | null}
    */
   fetchVendor() {
-    return new Promise((resolve) => {
-      TrezorConnect.getFeatures()
-        .then((response) => {
-          if (!response.success) {
-            resolve(null);
-            return;
-          }
-          const vendor = getVendorName(response.payload);
-          resolve(vendor);
-        })
-        .catch(() => {
-          resolve(null);
-        });
-    });
+    return TrezorConnect.getFeatures()
+      .then((response) => {
+        if (!response.success) {
+          return null;
+        }
+        const vendor = getVendorName(response.payload);
+        return vendor;
+      })
+      .catch(() => {
+        return null;
+      });
   }
 
   dispose() {
