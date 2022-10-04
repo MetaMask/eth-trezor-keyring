@@ -28,9 +28,9 @@ const oneKeyVendor = 'onekey.so';
 /**
  * get the vendor name of the hardware wallet
  * @param {object} features
- * @returns {'onekey' | 'trezor'}
+ * @returns {'onekey' | 'trezor' | undefined}
  */
-const getVendorName = (features) => {
+function getVendorName(features) {
   // If the value of features is null, set vendor to the default value
   if (!features) {
     return undefined;
@@ -50,7 +50,7 @@ const getVendorName = (features) => {
   }
 
   return 'trezor';
-};
+}
 
 function wait(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
@@ -112,7 +112,7 @@ class TrezorKeyring extends EventEmitter {
   /**
    * Gets the vendor, if known.
    *
-   * @returns {"trezor" | "onekey"}
+   * @returns {"trezor" | "onekey" | null}
    */
   async getVendor() {
     return this.vendor || (this.vendor = await this.fetchVendor());
@@ -120,24 +120,21 @@ class TrezorKeyring extends EventEmitter {
 
   /**
    * fetch vendor by call getFeatures
+   * @private
    * @param {object} features
    * @returns {'onekey' | 'trezor' | null}
    */
-  fetchVendor() {
-    return new Promise((resolve) => {
-      TrezorConnect.getFeatures()
-        .then((response) => {
-          if (!response.success) {
-            resolve(null);
-            return;
-          }
-          const vendor = getVendorName(response.payload);
-          resolve(vendor);
-        })
-        .catch(() => {
-          resolve(null);
-        });
-    });
+  async fetchVendor() {
+    try {
+      const response = await TrezorConnect.getFeatures();
+      if (!response.success) {
+        return null;
+      }
+      const vendor = getVendorName(response.payload);
+      return vendor;
+    } catch (err) {
+      return null;
+    }
   }
 
   dispose() {

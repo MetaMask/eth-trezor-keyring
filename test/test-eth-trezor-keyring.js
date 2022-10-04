@@ -759,5 +759,36 @@ describe('TrezorKeyring', function () {
       const vendor = await keyring.getVendor();
       assert.equal(vendor, 'onekey');
     });
+
+    it('should return null when TrezorConnect.getFeatures rejects with an error', async function () {
+      sinon.stub(TrezorConnect, 'getFeatures').callsFake(() =>
+        // eslint-disable-next-line prefer-promise-reject-errors
+        Promise.reject({
+          success: false,
+          payload: { error: 'mock error', code: 'mock error code' },
+        }),
+      );
+
+      const vendor = await keyring.getVendor();
+      assert.equal(vendor, null);
+    });
+
+    it('should called once TrezorConnect.getFeatures function when getVendor called more then once', async function () {
+      sinon.stub(TrezorConnect, 'getFeatures').callsFake(() =>
+        Promise.resolve({
+          success: true,
+          payload: {
+            minor_version: 1,
+            patch_version: 1,
+            vendor: 'onekey.so',
+          },
+        }),
+      );
+
+      for (let i = 0; i < 10; i++) {
+        await keyring.getVendor();
+      }
+      assert(TrezorConnect.getFeatures.calledOnce);
+    });
   });
 });
