@@ -705,7 +705,7 @@ describe('TrezorKeyring', function () {
       assert(TrezorConnect.getFeatures.calledOnce);
     });
 
-    it('should return null when getFeatures not success', async function () {
+    it('should return null when TrezorConnect.getFeatures resolves with an object that does not have a success property', async function () {
       sinon
         .stub(TrezorConnect, 'getFeatures')
         .callsFake(() => Promise.resolve({}));
