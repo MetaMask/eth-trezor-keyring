@@ -251,7 +251,7 @@ class TrezorKeyring extends EventEmitter {
     }
     return this._signTransaction(
       address,
-      tx.common.chainIdBN().toNumber(),
+      Number(tx.common.chainId()),
       tx,
       (payload) => {
         // Because tx will be immutable, first get a plain javascript object that

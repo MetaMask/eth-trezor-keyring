@@ -33,14 +33,14 @@
     "mocha/mkdirp": "^0.5.1"
   },
   "dependencies": {
-    "@ethereumjs/tx": "^3.2.1",
+    "@ethereumjs/tx": "^4.0.0",
     "@ethereumjs/util": "^8.0.0",
     "@metamask/eth-sig-util": "^5.0.0",
     "hdkey": "0.8.0",
     "trezor-connect": "8.2.6-extended"
   },
   "devDependencies": {
-    "@ethereumjs/common": "^2.4.0",
+    "@ethereumjs/common": "^3.0.0",
     "@lavamoat/allow-scripts": "^2.3.0",
     "@metamask/auto-changelog": "^3.0.0",
     "@metamask/eslint-config": "^8.0.0",
