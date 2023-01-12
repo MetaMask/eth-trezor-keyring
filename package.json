@@ -37,7 +37,7 @@
     "@ethereumjs/util": "^8.0.0",
     "@metamask/eth-sig-util": "^5.0.2",
     "hdkey": "0.8.0",
-    "trezor-connect": "8.2.6-extended"
+    "trezor-connect": "8.2.12-extended"
   },
   "devDependencies": {
     "@ethereumjs/common": "^3.0.0",
