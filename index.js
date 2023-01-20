@@ -1,9 +1,9 @@
 const { EventEmitter } = require('events');
 const ethUtil = require('ethereumjs-util');
 const HDKey = require('hdkey');
-const TrezorConnect = require('trezor-connect').default;
+const TrezorConnect = require('@trezor/connect-web').default;
 const { TransactionFactory } = require('@ethereumjs/tx');
-const transformTypedData = require('trezor-connect/lib/plugins/ethereum/typedData');
+const { transformTypedData } = require('@trezor/connect-plugin-ethereum');
 
 const hdPathString = `m/44'/60'/0'/0`;
 const SLIP0044TestnetPath = `m/44'/1'/0'/0`;
@@ -59,13 +59,18 @@ class TrezorKeyring extends EventEmitter {
     this.unlockedAccount = 0;
     this.paths = {};
     this.deserialize(opts);
+    this.trezorConnectInitiated = false;
 
     TrezorConnect.on('DEVICE_EVENT', (event) => {
       if (event && event.payload && event.payload.features) {
         this.model = event.payload.features.model;
       }
     });
-    TrezorConnect.init({ manifest: TREZOR_CONNECT_MANIFEST });
+
+    if (!this.trezorConnectInitiated) {
+      TrezorConnect.init({ manifest: TREZOR_CONNECT_MANIFEST, lazyLoad: true });
+      this.trezorConnectInitiated = true;
+    }
   }
 
   /**
