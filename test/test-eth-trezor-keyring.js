@@ -105,6 +105,16 @@ describe('TrezorKeyring', function () {
   beforeEach(async function () {
     keyring = new TrezorKeyring();
     keyring.hdk = fakeHdKey;
+    // mock TrezorConnect.getPubicKey with fake accounts
+    sinon.stub(TrezorConnect, 'getPublicKey').callsFake((_) => {
+      return Promise.resolve({
+        success: true,
+        payload: {
+          publicKey: fakeHdKey.publicKey.toString('hex'),
+          chainCode: fakeHdKey.chainCode.toString('hex'),
+        },
+      });
+    });
   });
 
   afterEach(function () {
@@ -185,9 +195,6 @@ describe('TrezorKeyring', function () {
     });
 
     it('should call TrezorConnect.getPublicKey if we dont have a public key', async function () {
-      sinon
-        .stub(TrezorConnect, 'getPublicKey')
-        .callsFake(() => Promise.resolve({}));
       keyring.hdk = new HDKey();
       try {
         await keyring.unlock();
