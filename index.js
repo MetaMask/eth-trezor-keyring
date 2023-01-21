@@ -477,7 +477,7 @@ class TrezorKeyring extends EventEmitter {
 
   async _pathFromAddress(address) {
     // First, assert that the pubkey which MetaMask remembers is the same as the one Trezor knows
-    const response = TrezorConnect.getPublicKey({
+    const response = await TrezorConnect.getPublicKey({
       path: this.hdPath,
       coin: 'ETH',
     });
