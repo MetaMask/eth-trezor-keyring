@@ -476,6 +476,25 @@ class TrezorKeyring extends EventEmitter {
   }
 
   async _pathFromAddress(address) {
+    // First, assert that the pubkey which MetaMask remembers is the same as the one Trezor knows
+    const response = TrezorConnect.getPublicKey({
+      path: this.hdPath,
+      coin: 'ETH',
+    });
+    if (!response.success) {
+      throw new Error(
+        (response.payload && response.payload.error) || 'Unknown error',
+      );
+    }
+    const pubkeyInTrezor = response.payload.publicKey;
+    const pubkeyInMetaMask = this.hdk.publicKey.toString('hex');
+    if (pubkeyInTrezor !== pubkeyInMetaMask) {
+      throw new Error(
+        'The public key which MetaMask remembers is different from the one Trezor knows. Please set the correct account.',
+      );
+    }
+
+    // then, the prerequisite is met, so we can derive the address
     const checksummedAddress = ethUtil.toChecksumAddress(address);
     let index = this.paths[checksummedAddress];
     if (typeof index === 'undefined') {
