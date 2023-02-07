@@ -16,6 +16,14 @@ device. However there are a number of differences:
 - As of `trezor-connect`: `8.2.2`, passing an EIP-1559 transaction to `signTransaction`
   requires the firmware version 2.4.2+ for TREZOR Model T, and version 1.10.4+ for TREZOR ONE.
 
+## Installation
+
+`yarn add @metamask/eth-trezor-keyring`
+
+or
+
+`npm install @metamask/eth-trezor-keyring`
+
 ## Using
 
 In addition to all the known methods from the [Keyring class protocol](https://github.com/MetaMask/eth-simple-keyring#the-keyring-class-protocol),
