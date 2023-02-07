@@ -608,6 +608,38 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@metamask/eth-trezor-keyring@workspace:.":
+  version: 0.0.0-use.local
+  resolution: "@metamask/eth-trezor-keyring@workspace:."
+  dependencies:
+    "@ethereumjs/common": ^3.0.0
+    "@ethereumjs/tx": ^4.0.0
+    "@ethereumjs/util": ^8.0.0
+    "@lavamoat/allow-scripts": ^2.3.0
+    "@metamask/auto-changelog": ^3.0.0
+    "@metamask/eslint-config": ^8.0.0
+    "@metamask/eslint-config-mocha": ^8.0.0
+    "@metamask/eslint-config-nodejs": ^8.0.0
+    "@metamask/eth-sig-util": ^5.0.2
+    "@trezor/connect-plugin-ethereum": ^9.0.0
+    "@trezor/connect-web": ^9.0.6
+    chai: ^4.1.2
+    chai-spies: ^1.0.0
+    eslint: ^7.26.0
+    eslint-config-prettier: ^8.3.0
+    eslint-plugin-import: ^2.22.1
+    eslint-plugin-mocha: ^8.1.0
+    eslint-plugin-node: ^11.1.0
+    eslint-plugin-prettier: ^3.4.0
+    ethereumjs-tx: ^1.3.4
+    hdkey: 0.8.0
+    mocha: ^5.0.4
+    prettier: ^2.3.0
+    prettier-plugin-packagejson: ^2.2.12
+    sinon: ^9.2.3
+  languageName: unknown
+  linkType: soft
+
 "@noble/hashes@npm:1.1.2":
   version: 1.1.2
   resolution: "@noble/hashes@npm:1.1.2"
@@ -2530,38 +2562,6 @@ __metadata:
   checksum: 22b5b08f74737379a840b8ed2036a5fb35826c709ab000683b092d9054e5c2a82c27818f12604bfc2a9a76b90b6834ef081edbc1c7ae30d1627012e067c6ec87
   languageName: node
   linkType: hard
-
-"eth-trezor-keyring@workspace:.":
-  version: 0.0.0-use.local
-  resolution: "eth-trezor-keyring@workspace:."
-  dependencies:
-    "@ethereumjs/common": ^3.0.0
-    "@ethereumjs/tx": ^4.0.0
-    "@ethereumjs/util": ^8.0.0
-    "@lavamoat/allow-scripts": ^2.3.0
-    "@metamask/auto-changelog": ^3.0.0
-    "@metamask/eslint-config": ^8.0.0
-    "@metamask/eslint-config-mocha": ^8.0.0
-    "@metamask/eslint-config-nodejs": ^8.0.0
-    "@metamask/eth-sig-util": ^5.0.2
-    "@trezor/connect-plugin-ethereum": ^9.0.0
-    "@trezor/connect-web": ^9.0.6
-    chai: ^4.1.2
-    chai-spies: ^1.0.0
-    eslint: ^7.26.0
-    eslint-config-prettier: ^8.3.0
-    eslint-plugin-import: ^2.22.1
-    eslint-plugin-mocha: ^8.1.0
-    eslint-plugin-node: ^11.1.0
-    eslint-plugin-prettier: ^3.4.0
-    ethereumjs-tx: ^1.3.4
-    hdkey: 0.8.0
-    mocha: ^5.0.4
-    prettier: ^2.3.0
-    prettier-plugin-packagejson: ^2.2.12
-    sinon: ^9.2.3
-  languageName: unknown
-  linkType: soft
 
 "ethereum-common@npm:^0.0.18":
   version: 0.0.18

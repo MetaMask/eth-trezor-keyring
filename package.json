@@ -1,5 +1,5 @@
 {
-  "name": "eth-trezor-keyring",
+  "name": "@metamask/eth-trezor-keyring",
   "version": "0.10.0",
   "description": "A MetaMask compatible keyring, for trezor hardware wallets",
   "keywords": [
@@ -89,5 +89,9 @@
       "ethereumjs-tx>ethereumjs-util>ethereum-cryptography>keccak": false,
       "ethereumjs-tx>ethereumjs-util>ethereum-cryptography>secp256k1": false
     }
+  },
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://registry.npmjs.org/"
   }
 }
