@@ -1,5 +1,5 @@
 {
-  "name": "eth-trezor-keyring",
+  "name": "@metamask/eth-trezor-keyring",
   "version": "0.10.0",
   "description": "A MetaMask compatible keyring, for trezor hardware wallets",
   "keywords": [
@@ -64,6 +64,10 @@
   "packageManager": "yarn@3.3.1",
   "engines": {
     "node": ">=14.0.0"
+  },
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://registry.npmjs.org/"
   },
   "lavamoat": {
     "allowScripts": {
