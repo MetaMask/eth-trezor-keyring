@@ -559,14 +559,14 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/eslint-config-mocha@npm:^8.0.0":
-  version: 8.0.0
-  resolution: "@metamask/eslint-config-mocha@npm:8.0.0"
+"@metamask/eslint-config-mocha@npm:^11.1.0":
+  version: 11.1.0
+  resolution: "@metamask/eslint-config-mocha@npm:11.1.0"
   peerDependencies:
-    "@metamask/eslint-config": ^8.0.0
-    eslint: ^7.23.0
-    eslint-plugin-mocha: ^8.1.0
-  checksum: 09bd2554e958c3b43b02de2728a32185d2d87e87d01303bafd37d46e26f37dfe151d3014a29f958d849f3c2d39e6c457d5dd996104eadc959663b84c7cc9cd9e
+    "@metamask/eslint-config": ^11.0.0
+    eslint: ^8.27.0
+    eslint-plugin-mocha: ^10.1.0
+  checksum: 3ed0217b2c9a6351c587fc97a4eda21ad2df8e52bbd21a1c91636570f02fa5e147a122093c576d6a6cf7e06886887daf917ec93a56293f1fdafd9a7b2289f2b5
   languageName: node
   linkType: hard
 
@@ -618,7 +618,7 @@ __metadata:
     "@lavamoat/allow-scripts": ^2.3.0
     "@metamask/auto-changelog": ^3.0.0
     "@metamask/eslint-config": ^8.0.0
-    "@metamask/eslint-config-mocha": ^8.0.0
+    "@metamask/eslint-config-mocha": ^11.1.0
     "@metamask/eslint-config-nodejs": ^8.0.0
     "@metamask/eth-sig-util": ^5.0.2
     "@trezor/connect-plugin-ethereum": ^9.0.0
