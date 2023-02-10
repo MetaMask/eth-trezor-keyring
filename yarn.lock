@@ -659,6 +659,7 @@ __metadata:
     "@trezor/connect-web": ^9.0.6
     "@types/chai": ^4.3.4
     "@types/chai-spies": ^1.0.3
+    "@types/ethereumjs-tx": ^1.0.1
     "@types/hdkey": ^2.0.1
     "@types/mocha": ^10.0.1
     "@types/node": ^17.0.23
@@ -674,7 +675,7 @@ __metadata:
     eslint-plugin-mocha: ^8.1.0
     eslint-plugin-node: ^11.1.0
     eslint-plugin-prettier: ^3.4.0
-    ethereumjs-tx: ^2.1.2
+    ethereumjs-tx: ^1.3.4
     hdkey: 0.8.0
     mocha: ^5.0.4
     prettier: ^2.3.0
@@ -1086,12 +1087,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/bn.js@npm:^4.11.3":
-  version: 4.11.6
-  resolution: "@types/bn.js@npm:4.11.6"
+"@types/bn.js@npm:*":
+  version: 5.1.1
+  resolution: "@types/bn.js@npm:5.1.1"
   dependencies:
     "@types/node": "*"
-  checksum: 7f66f2c7b7b9303b3205a57184261974b114495736b77853af5b18d857c0b33e82ce7146911e86e87a87837de8acae28986716fd381ac7c301fd6e8d8b6c811f
+  checksum: e50ed2dd3abe997e047caf90e0352c71e54fc388679735217978b4ceb7e336e51477791b715f49fd77195ac26dd296c7bad08a3be9750e235f9b2e1edb1b51c2
   languageName: node
   linkType: hard
 
@@ -1108,6 +1109,16 @@ __metadata:
   version: 4.3.4
   resolution: "@types/chai@npm:4.3.4"
   checksum: 571184967beb03bf64c4392a13a7d44e72da9af5a1e83077ff81c39cf59c0fda2a5c78d2005084601cf8f3d11726608574d8b5b4a0e3e9736792807afd926cd0
+  languageName: node
+  linkType: hard
+
+"@types/ethereumjs-tx@npm:^1.0.1":
+  version: 1.0.1
+  resolution: "@types/ethereumjs-tx@npm:1.0.1"
+  dependencies:
+    "@types/bn.js": "*"
+    "@types/node": "*"
+  checksum: 244f77817e7a19b1f1f4d2c6a599c449b2312fa2a28c3f9656b5196d0a1f71c892ac70c1081859c6936423a7a4a08e6547a6f4a70a7a6c2859c169514096cd0a
   languageName: node
   linkType: hard
 
@@ -2912,6 +2923,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"ethereum-common@npm:^0.0.18":
+  version: 0.0.18
+  resolution: "ethereum-common@npm:0.0.18"
+  checksum: 2244126199604abc17508ca249c6f8a66a2ed02e9c97115f234e311f42e2d67aedff08128569fa3dfb8a2d09e1c194eace39a1ce61bfeb2338b6d3f2ac324ee8
+  languageName: node
+  linkType: hard
+
 "ethereum-cryptography@npm:^0.1.3":
   version: 0.1.3
   resolution: "ethereum-cryptography@npm:0.1.3"
@@ -2947,35 +2965,28 @@ __metadata:
   languageName: node
   linkType: hard
 
-"ethereumjs-common@npm:^1.5.0":
-  version: 1.5.2
-  resolution: "ethereumjs-common@npm:1.5.2"
-  checksum: 3fc64faced268e0c61da50c5db76d18cfd44325d5706792f32ac8c85c0e800d52db284f042c3bd0623daf59b946176ef7dbea476d1b0252492137fa4549a3349
+"ethereumjs-tx@npm:^1.3.4":
+  version: 1.3.7
+  resolution: "ethereumjs-tx@npm:1.3.7"
+  dependencies:
+    ethereum-common: ^0.0.18
+    ethereumjs-util: ^5.0.0
+  checksum: fe2323fe7db7f5dda85715dc67c31dd1f2925bf5a88e393ba939dbe699b73df008f1332f711b1aa37e943193acf3b6976202a33f2fab1f7675b6d2dd70f424d4
   languageName: node
   linkType: hard
 
-"ethereumjs-tx@npm:^2.1.2":
-  version: 2.1.2
-  resolution: "ethereumjs-tx@npm:2.1.2"
+"ethereumjs-util@npm:^5.0.0":
+  version: 5.2.1
+  resolution: "ethereumjs-util@npm:5.2.1"
   dependencies:
-    ethereumjs-common: ^1.5.0
-    ethereumjs-util: ^6.0.0
-  checksum: a5b607b4e125ed696d76a9e4db8a95e03a967323c66694912d799619b16fa43985336924221f9e7582dc1b09ff88a62116bf2290ee14d952bf7e6715e5728525
-  languageName: node
-  linkType: hard
-
-"ethereumjs-util@npm:^6.0.0":
-  version: 6.2.1
-  resolution: "ethereumjs-util@npm:6.2.1"
-  dependencies:
-    "@types/bn.js": ^4.11.3
     bn.js: ^4.11.0
     create-hash: ^1.1.2
     elliptic: ^6.5.2
     ethereum-cryptography: ^0.1.3
-    ethjs-util: 0.1.6
-    rlp: ^2.2.3
-  checksum: e3cb4a2c034a2529281fdfc21a2126fe032fdc3038863f5720352daa65ddcc50fc8c67dbedf381a882dc3802e05d979287126d7ecf781504bde1fd8218693bde
+    ethjs-util: ^0.1.3
+    rlp: ^2.0.0
+    safe-buffer: ^5.1.1
+  checksum: 20db6c639d92b35739fd5f7a71e64a92e85442ea0d176b59b5cd5828265b6cf42bd4868cf81a9b20a83738db1ffa7a2f778f1d850d663627a1a5209f7904b44f
   languageName: node
   linkType: hard
 
@@ -3017,7 +3028,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"ethjs-util@npm:0.1.6, ethjs-util@npm:^0.1.6":
+"ethjs-util@npm:^0.1.3, ethjs-util@npm:^0.1.6":
   version: 0.1.6
   resolution: "ethjs-util@npm:0.1.6"
   dependencies:
@@ -5397,7 +5408,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"rlp@npm:^2.2.3":
+"rlp@npm:^2.0.0":
   version: 2.2.7
   resolution: "rlp@npm:2.2.7"
   dependencies:

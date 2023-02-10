@@ -5,7 +5,7 @@ import TrezorConnect, { DEVICE_EVENT, EthereumTransactionEIP1559 } from '@trezor
 import type { EthereumSignedTx, EthereumTransaction } from '@trezor/connect-web';
 import { TransactionFactory } from '@ethereumjs/tx';
 import type { TypedTransaction } from '@ethereumjs/tx';
-import type { Transaction as OldEthJsTransaction } from 'ethereumjs-tx';
+import type OldEthJsTransaction from 'ethereumjs-tx';
 import { transformTypedData } from '@trezor/connect-plugin-ethereum';
 import { TypedMessage, MessageTypeProperty } from '@metamask/eth-sig-util';
 
@@ -281,8 +281,12 @@ export class TrezorKeyring extends EventEmitter {
       // object.
       return this._signTransaction(
         address,
-        (tx as OldEthJsTransaction).getChainId(),
-        tx as OldEthJsTransaction,
+        // @types/ethereumjs-tx and old ethereumjs-tx versions document
+        // this function return value as Buffer, but the actual
+        // Transaction._chainId will always be a number.
+        // See https://github.com/ethereumjs/ethereumjs-tx/blob/v1.3.7/index.js#L126
+        (tx as OldEthJsTransaction).getChainId() as unknown as number,
+        tx,
         (payload) => {
           (tx as OldEthJsTransaction).v = Buffer.from(payload.v, 'hex');
           (tx as OldEthJsTransaction).r = Buffer.from(payload.r, 'hex');
