@@ -64,25 +64,25 @@ function isOldStyleEthereumjsTx(tx: TypedTransaction | OldEthJsTransaction) {
 }
 
 export class TrezorKeyring extends EventEmitter {
-  static type: string = keyringType;
+  type: string = keyringType;
 
-  private accounts: string[] = [];
+  accounts: string[] = [];
 
-  private hdk: HDKey = new HDKey();
+  hdk: HDKey = new HDKey();
 
-  private hdPath: string = hdPathString;
+  hdPath: string = hdPathString;
 
-  private page: number = 0;
+  page: number = 0;
 
-  private perPage: number = 5;
+  perPage: number = 5;
 
-  private unlockedAccount: number = 0;
+  unlockedAccount: number = 0;
 
-  private paths: Record<string, number> = {};
+  paths: Record<string, number> = {};
 
-  private trezorConnectInitiated: boolean = false;
+  trezorConnectInitiated: boolean = false;
 
-  private model?: string;
+  model?: string;
 
   constructor(opts: TrezorControllerOptions = {}) {
     super();
@@ -541,14 +541,12 @@ export class TrezorKeyring extends EventEmitter {
     this.hdPath = hdPath;
   }
 
-  /* PRIVATE METHODS */
-
-  _normalize(buf: Buffer) {
+  private _normalize(buf: Buffer) {
     return ethUtil.bufferToHex(buf).toString();
   }
 
   // eslint-disable-next-line no-shadow
-  _addressFromIndex(pathBase: string, i: number) {
+  private _addressFromIndex(pathBase: string, i: number) {
     const dkey = this.hdk.derive(`${pathBase}/${i}`);
     const address = ethUtil
       .publicToAddress(dkey.publicKey, true)
@@ -556,7 +554,7 @@ export class TrezorKeyring extends EventEmitter {
     return ethUtil.toChecksumAddress(`0x${address}`);
   }
 
-  _pathFromAddress(address: string) {
+  private _pathFromAddress(address: string) {
     const checksummedAddress = ethUtil.toChecksumAddress(address);
     let index = this.paths[checksummedAddress];
     if (typeof index === 'undefined') {
