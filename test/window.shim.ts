@@ -1,20 +1,24 @@
+let windowShim: any;
+
 try {
   // eslint-disable-next-line no-undef
-  module.exports = window || {
+  windowShim = window || {
     __TREZOR_CONNECT_SRC: null,
     location: {
       protocol: 'https',
     },
-    addEventListener: (_) => false,
-    setTimeout: (_) => false,
+    addEventListener: () => false,
+    setTimeout: () => false,
   };
 } catch (e) {
-  module.exports = {
+  windowShim = {
     __TREZOR_CONNECT_SRC: null,
     location: {
       protocol: 'https',
     },
-    addEventListener: (_) => false,
-    setTimeout: (_) => false,
+    addEventListener: () => false,
+    setTimeout: () => false,
   };
 }
+
+export default windowShim;
