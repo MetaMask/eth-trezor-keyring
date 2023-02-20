@@ -69,7 +69,7 @@ function wait(ms: number) {
  * @param {TypedTransaction | OldEthJsTransaction} tx
  * @returns {tx is OldEthJsTransaction} Returns `true` if tx is an old-style ethereumjs-tx transaction.
  */
-function isOldStyleEthereumjsTx(tx: TypedTransaction | OldEthJsTransaction) {
+function isOldStyleEthereumjsTx(tx: TypedTransaction | OldEthJsTransaction): tx is OldEthJsTransaction {
   return typeof (tx as OldEthJsTransaction).getChainId === 'function';
 }
 
@@ -301,27 +301,27 @@ export class TrezorKeyring extends EventEmitter {
         // this function return value as Buffer, but the actual
         // Transaction._chainId will always be a number.
         // See https://github.com/ethereumjs/ethereumjs-tx/blob/v1.3.7/index.js#L126
-        (tx as OldEthJsTransaction).getChainId() as unknown as number,
+        tx.getChainId() as unknown as number,
         tx,
         (payload) => {
-          (tx as OldEthJsTransaction).v = Buffer.from(payload.v, 'hex');
-          (tx as OldEthJsTransaction).r = Buffer.from(payload.r, 'hex');
-          (tx as OldEthJsTransaction).s = Buffer.from(payload.s, 'hex');
+          tx.v = Buffer.from(payload.v, 'hex');
+          tx.r = Buffer.from(payload.r, 'hex');
+          tx.s = Buffer.from(payload.s, 'hex');
           return tx;
         },
       );
     }
     return this._signTransaction(
       address,
-      Number((tx as TypedTransaction).common.chainId()),
+      Number(tx.common.chainId()),
       tx,
       (payload) => {
         // Because tx will be immutable, first get a plain javascript object that
         // represents the transaction. Using txData here as it aligns with the
         // nomenclature of ethereumjs/tx.
-        const txData = (tx as TypedTransaction).toJSON() as TxData;
+        const txData = tx.toJSON() as TxData;
         // The fromTxData utility expects a type to support transactions with a type other than 0
-        txData.type = (tx as TypedTransaction).type;
+        txData.type = tx.type;
         // The fromTxData utility expects v,r and s to be hex prefixed
         txData.v = ethUtil.addHexPrefix(payload.v);
         txData.r = ethUtil.addHexPrefix(payload.r);
@@ -329,7 +329,7 @@ export class TrezorKeyring extends EventEmitter {
         // Adopt the 'common' option from the original transaction and set the
         // returned object to be frozen if the original is frozen.
         return TransactionFactory.fromTxData(txData, {
-          common: (tx as TypedTransaction).common,
+          common: tx.common,
           freeze: Object.isFrozen(tx),
         });
       },
@@ -360,21 +360,21 @@ export class TrezorKeyring extends EventEmitter {
       // legacy transaction from ethereumjs-tx package has no .toJSON() function,
       // so we need to convert to hex-strings manually manually
       transaction = {
-        to: this._normalize((tx as OldEthJsTransaction).to),
-        value: this._normalize((tx as OldEthJsTransaction).value),
-        data: this._normalize((tx as OldEthJsTransaction).data),
+        to: this._normalize(tx.to),
+        value: this._normalize(tx.value),
+        data: this._normalize(tx.data),
         chainId,
-        nonce: this._normalize((tx as OldEthJsTransaction).nonce),
-        gasLimit: this._normalize((tx as OldEthJsTransaction).gasLimit),
-        gasPrice: this._normalize((tx as OldEthJsTransaction).gasPrice),
+        nonce: this._normalize(tx.nonce),
+        gasLimit: this._normalize(tx.gasLimit),
+        gasPrice: this._normalize(tx.gasPrice),
       };
     } else {
       // new-style transaction from @ethereumjs/tx package
       // we can just copy tx.toJSON() for everything except chainId, which must be a number
       transaction = {
-        ...(tx as TypedTransaction).toJSON(),
+        ...tx.toJSON(),
         chainId,
-        to: this._normalize(tx.to as Buffer),
+        to: this._normalize(tx.to as unknown as Buffer),
       } as EthereumTransaction;
     }
 
