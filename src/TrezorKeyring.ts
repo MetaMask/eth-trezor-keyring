@@ -22,10 +22,10 @@ import {
 const hdPathString = `m/44'/60'/0'/0`;
 const SLIP0044TestnetPath = `m/44'/1'/0'/0`;
 
-const ALLOWED_HD_PATHS: Record<string, boolean> = {
+const ALLOWED_HD_PATHS = {
   [hdPathString]: true,
   [SLIP0044TestnetPath]: true,
-};
+} as const;
 
 const keyringType = 'Trezor Hardware';
 const pathBase = 'm';
@@ -540,7 +540,7 @@ export class TrezorKeyring extends EventEmitter {
    *
    * @param {string} hdPath - The HD path to set.
    */
-  setHdPath(hdPath: string) {
+  setHdPath(hdPath: keyof typeof ALLOWED_HD_PATHS) {
     if (!ALLOWED_HD_PATHS[hdPath]) {
       throw new Error(
         `The setHdPath method does not support setting HD Path to ${hdPath}`,
