@@ -15,8 +15,8 @@ import type OldEthJsTransaction from 'ethereumjs-tx';
 import { transformTypedData } from '@trezor/connect-plugin-ethereum';
 import {
   TypedMessage,
-  MessageTypeProperty,
   SignTypedDataVersion,
+  MessageTypes,
 } from '@metamask/eth-sig-util';
 
 const hdPathString = `m/44'/60'/0'/0`;
@@ -352,14 +352,12 @@ export class TrezorKeyring extends EventEmitter {
    * @returns The signed transaction, an instance of either new-style or old-style
    * ethereumjs transaction.
    */
-  async #signTransaction(
+  async #signTransaction<T extends TypedTransaction | OldEthJsTransaction>(
     address: string,
     chainId: number,
-    tx: TypedTransaction | OldEthJsTransaction,
-    handleSigning: (
-      tx: EthereumSignedTx,
-    ) => OldEthJsTransaction | TypedTransaction,
-  ) {
+    tx: T,
+    handleSigning: (tx: EthereumSignedTx) => T,
+  ): Promise<T> {
     let transaction: EthereumTransaction | EthereumTransactionEIP1559;
     if (isOldStyleEthereumjsTx(tx)) {
       // legacy transaction from ethereumjs-tx package has no .toJSON() function,
@@ -380,7 +378,7 @@ export class TrezorKeyring extends EventEmitter {
         ...tx.toJSON(),
         chainId,
         to: this.#normalize(tx.to as unknown as Buffer),
-      } as EthereumTransaction;
+      } as EthereumTransaction | EthereumTransactionEIP1559;
     }
 
     try {
@@ -463,12 +461,9 @@ export class TrezorKeyring extends EventEmitter {
   /**
    * EIP-712 Sign Typed Data
    */
-  async signTypedData(
+  async signTypedData<T extends MessageTypes>(
     address: string,
-    data: TypedMessage<{
-      EIP712Domain: MessageTypeProperty[]; // eslint-disable-line
-      [additionalProperties: string]: MessageTypeProperty[];
-    }>,
+    data: TypedMessage<T>,
     { version }: { version: SignTypedDataVersion },
   ) {
     const dataWithHashes = transformTypedData(data, version === 'V4');
@@ -493,12 +488,9 @@ export class TrezorKeyring extends EventEmitter {
     const response = await TrezorConnect.ethereumSignTypedData({
       path: this.#pathFromAddress(address),
       data: {
-        types: { EIP712Domain, ...otherTypes },
+        types: { EIP712Domain, ...otherTypes } as T,
         message,
         domain,
-        // TODO: Understand what type is this
-        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-        // @ts-ignore next-line
         primaryType,
       },
       // eslint-disable-next-line @typescript-eslint/naming-convention
