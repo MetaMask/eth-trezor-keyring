@@ -2,6 +2,7 @@ import { EventEmitter } from 'events';
 import * as ethUtil from '@ethereumjs/util';
 import HDKey from 'hdkey';
 import TrezorConnect, {
+  Device,
   DEVICE_EVENT,
   EthereumTransactionEIP1559,
 } from '@trezor/connect-web';
@@ -105,12 +106,8 @@ export class TrezorKeyring extends EventEmitter {
     });
 
     TrezorConnect.on(DEVICE_EVENT, (event) => {
-      if (
-        event?.payload &&
-        event?.type === 'device-connect' &&
-        event?.payload?.features
-      ) {
-        this.model = event.payload.features.model;
+      if ((event?.payload as Device)?.features) {
+        this.model = (event.payload as Device)?.features?.model;
       }
     });
 
