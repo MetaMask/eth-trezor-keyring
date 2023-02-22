@@ -34,7 +34,9 @@
     "test": "mocha -r ts-node/register src/**/*.ts"
   },
   "resolutions": {
-    "mocha/mkdirp": "^0.5.1"
+    "mocha/mkdirp": "^0.5.1",
+    "@types/web": "0.0.69",
+    "@trezor/connect@9.0.6": "patch:@trezor/connect@npm%3A9.0.6#./.yarn/patches/@trezor-connect-npm-9.0.6-37abefdc3e.patch"
   },
   "dependencies": {
     "@ethereumjs/tx": "^4.0.0",

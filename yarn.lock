@@ -1038,6 +1038,27 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@trezor/connect@patch:@trezor/connect@npm%3A9.0.6#./.yarn/patches/@trezor-connect-npm-9.0.6-37abefdc3e.patch::locator=%40metamask%2Feth-trezor-keyring%40workspace%3A.":
+  version: 9.0.6
+  resolution: "@trezor/connect@patch:@trezor/connect@npm%3A9.0.6#./.yarn/patches/@trezor-connect-npm-9.0.6-37abefdc3e.patch::version=9.0.6&hash=c2d706&locator=%40metamask%2Feth-trezor-keyring%40workspace%3A."
+  dependencies:
+    "@trezor/blockchain-link": ^2.1.7
+    "@trezor/connect-common": 0.0.11
+    "@trezor/transport": ^1.1.7
+    "@trezor/utils": ^9.0.5
+    "@trezor/utxo-lib": ^1.0.3
+    bignumber.js: ^9.1.0
+    blakejs: ^1.2.1
+    bowser: ^2.11.0
+    cross-fetch: ^3.1.5
+    events: ^3.3.0
+    parse-uri: 1.0.7
+    randombytes: 2.1.0
+    tslib: 2.5.0
+  checksum: 0c5edc71750071560b1b2ec65cb535d4f25c16cdbc7b3ec3c6d637481396bca39e6f4a46d3d321eeed38f53e3ce429a754682fcfec7acc417f35a992d7712881
+  languageName: node
+  linkType: hard
+
 "@trezor/transport@npm:^1.1.7":
   version: 1.1.7
   resolution: "@trezor/transport@npm:1.1.7"
@@ -1254,10 +1275,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/web@npm:^0.0.80":
-  version: 0.0.80
-  resolution: "@types/web@npm:0.0.80"
-  checksum: 8a4fd9087f51ff292b755f57aa6695a8bcdbdae4cfa3e3403b85923e98f2539117ca5dca57063f8d38199dde231af8169a471b738d082727f1247e5e711097db
+"@types/web@npm:0.0.69":
+  version: 0.0.69
+  resolution: "@types/web@npm:0.0.69"
+  checksum: c4b1cc17ade364ed53e64673b7dde8e8439f8eafda2c7eb9c45201248b7fbd7a49977693cc45a265ecb1af65a7802e166fbd0e16952f247d5eacc8d981db58b7
   languageName: node
   linkType: hard
 
