@@ -1,17 +1,33 @@
 module.exports = {
   root: true,
-  parserOptions: {
-    ecmaVersion: 2018, // to support object rest spread, e.g. {...x, ...y}
-  },
 
-  extends: ['@metamask/eslint-config', '@metamask/eslint-config-nodejs'],
+  extends: ['@metamask/eslint-config'],
 
   overrides: [
     {
-      files: ['test/**/*.js'],
+      files: ['*.ts'],
+      extends: ['@metamask/eslint-config-typescript'],
+    },
+
+    {
+      files: ['*.js'],
+      parserOptions: {
+        sourceType: 'script',
+      },
+      extends: ['@metamask/eslint-config-nodejs'],
+    },
+
+    {
+      files: ['*.test.ts'],
       extends: ['@metamask/eslint-config-mocha'],
     },
   ],
 
-  ignorePatterns: ['dist'],
+  ignorePatterns: [
+    '!.eslintrc.js',
+    '!.prettierrc.js',
+    'dist/',
+    'docs/',
+    '.yarn/',
+  ],
 };

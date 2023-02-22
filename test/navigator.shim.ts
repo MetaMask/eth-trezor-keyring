@@ -1,3 +1,4 @@
+// eslint-disable-next-line import/no-mutable-exports
 let navigatorShim: any;
 
 try {

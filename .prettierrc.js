@@ -5,6 +5,7 @@
  * it to prevent any issues with mismatched settings
  */
 const config = require('@metamask/eslint-config');
+
 const prettierConfig = config.rules[`prettier/prettier`][1];
 
 module.exports = prettierConfig;
