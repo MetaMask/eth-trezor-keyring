@@ -1040,7 +1040,7 @@ __metadata:
 
 "@trezor/connect@patch:@trezor/connect@npm%3A9.0.6#./.yarn/patches/@trezor-connect-npm-9.0.6-37abefdc3e.patch::locator=%40metamask%2Feth-trezor-keyring%40workspace%3A.":
   version: 9.0.6
-  resolution: "@trezor/connect@patch:@trezor/connect@npm%3A9.0.6#./.yarn/patches/@trezor-connect-npm-9.0.6-37abefdc3e.patch::version=9.0.6&hash=c2d706&locator=%40metamask%2Feth-trezor-keyring%40workspace%3A."
+  resolution: "@trezor/connect@patch:@trezor/connect@npm%3A9.0.6#./.yarn/patches/@trezor-connect-npm-9.0.6-37abefdc3e.patch::version=9.0.6&hash=e5e29a&locator=%40metamask%2Feth-trezor-keyring%40workspace%3A."
   dependencies:
     "@trezor/blockchain-link": ^2.1.7
     "@trezor/connect-common": 0.0.11
@@ -1055,7 +1055,7 @@ __metadata:
     parse-uri: 1.0.7
     randombytes: 2.1.0
     tslib: 2.5.0
-  checksum: 0c5edc71750071560b1b2ec65cb535d4f25c16cdbc7b3ec3c6d637481396bca39e6f4a46d3d321eeed38f53e3ce429a754682fcfec7acc417f35a992d7712881
+  checksum: 57362e722fb5b7ac734ee83bfdc39dfb8b43852dec9226f40264a987f3ac016a383c22b6b1dfcbded3ecfbfe3339d484c8be2cf8d0766118c2b38c81d36c55e8
   languageName: node
   linkType: hard
 
