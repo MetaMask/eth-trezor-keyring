@@ -621,7 +621,7 @@ __metadata:
     "@metamask/eslint-config-mocha": ^8.0.0
     "@metamask/eslint-config-nodejs": ^8.0.0
     "@metamask/eth-sig-util": ^5.0.2
-    "@trezor/connect-plugin-ethereum": ^9.0.0
+    "@trezor/connect-plugin-ethereum": ^9.0.1
     "@trezor/connect-web": ^9.0.6
     chai: ^4.1.2
     chai-spies: ^1.0.0
@@ -917,12 +917,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@trezor/connect-plugin-ethereum@npm:^9.0.0":
-  version: 9.0.0
-  resolution: "@trezor/connect-plugin-ethereum@npm:9.0.0"
+"@trezor/connect-plugin-ethereum@npm:^9.0.1":
+  version: 9.0.1
+  resolution: "@trezor/connect-plugin-ethereum@npm:9.0.1"
   peerDependencies:
-    "@metamask/eth-sig-util": ^4.0.1
-  checksum: 05cd30809ad1d18f3ad4bad411bb39b15d8bbcde61e15abbcdcbaeba3b8c23dbd4052fbba5089992f57f07710e93d18e9635025813857ad40e462fb6df5c8ab1
+    "@metamask/eth-sig-util": ^5.0.2
+  checksum: 24ae4103d4873cc5ca083577ca0f561e983fa9eebd3c2bdb1de1ee1c509f773b9bca758a21c05043212aef997cd8544fc820f7b6764c0c43edb9ab77efbc10ae
   languageName: node
   linkType: hard
 
