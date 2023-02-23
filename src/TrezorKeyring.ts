@@ -46,7 +46,7 @@ export type TrezorControllerOptions = {
 
 export type TrezorControllerState = {
   hdPath: string;
-  accounts: string[];
+  accounts: readonly string[];
   page: number;
   paths: Record<string, number>;
   perPage: number;
@@ -81,7 +81,7 @@ export class TrezorKeyring extends EventEmitter {
 
   readonly type: string = keyringType;
 
-  accounts: string[] = [];
+  accounts: readonly string[] = [];
 
   hdk: HDKey = new HDKey();
 
@@ -192,7 +192,7 @@ export class TrezorKeyring extends EventEmitter {
     this.unlockedAccount = parseInt(String(index), 10);
   }
 
-  async addAccounts(n = 1): Promise<string[]> {
+  async addAccounts(n = 1): Promise<readonly string[]> {
     return new Promise((resolve, reject) => {
       this.unlock()
         .then((_) => {
@@ -202,7 +202,7 @@ export class TrezorKeyring extends EventEmitter {
           for (let i = from; i < to; i++) {
             const address = this.#addressFromIndex(pathBase, i);
             if (!this.accounts.includes(address)) {
-              this.accounts.push(address);
+              this.accounts = [...this.accounts, address];
             }
             this.page = 0;
           }
