@@ -5,8 +5,14 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+
+## [1.0.0]
 ### Changed
-- **BREAKING:** Removed support for Node v12 in favor of v14 ([#137](https://github.com/MetaMask/eth-json-rpc-middleware/pull/137))
+- **BREAKING:** Rename package to use `@metamask` scope ([#160](https://github.com/MetaMask/eth-trezor-keyring/pull/160))
+- **BREAKING:** Removed support for Node v12 in favor of v14 ([#135](https://github.com/MetaMask/eth-trezor-keyring/pull/135))
+- Update `@ethereumjs/util`, `@ethereumjs/tx`, `@metamask/eth-sig-util` to latest versions ([#146](https://github.com/MetaMask/eth-trezor-keyring/pull/146))
+- Bump trezor-connect - now @trezor/connect-plugin-ethereum & @trezor/connect-web - to v9 ([#133](https://github.com/MetaMask/eth-trezor-keyring/pull/133), [#163](https://github.com/MetaMask/eth-trezor-keyring/pull/163))
+
 
 ## [0.10.0]
 ### Added
@@ -30,9 +36,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [0.7.0]
 ### Added
-- Support new versions of ethereumjs/tx ([#88](https://github.com/MetaMask/eth-trezor-keyring/pull/88))
+- Support new versions of ethereumjs/tx ([#88](https://github.com/metamask/eth-trezor-keyring/pull/88))
 
-[Unreleased]: https://github.com/metamask/eth-trezor-keyring/compare/v0.10.0...HEAD
+[Unreleased]: https://github.com/metamask/eth-trezor-keyring/compare/v1.0.0...HEAD
+[1.0.0]: https://github.com/metamask/eth-trezor-keyring/compare/v0.10.0...v1.0.0
 [0.10.0]: https://github.com/metamask/eth-trezor-keyring/compare/v0.9.1...v0.10.0
 [0.9.1]: https://github.com/metamask/eth-trezor-keyring/compare/v0.9.0...v0.9.1
 [0.9.0]: https://github.com/metamask/eth-trezor-keyring/compare/v0.8.0...v0.9.0
