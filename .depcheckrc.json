@@ -4,6 +4,7 @@
     "@metamask/auto-changelog",
     "@types/*",
     "prettier-plugin-packagejson",
+    "rimraf",
     "ts-node",
     "typedoc"
   ]
