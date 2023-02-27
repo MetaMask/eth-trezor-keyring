@@ -11,15 +11,7 @@
     "noUncheckedIndexedAccess": true,
     "strict": true,
     "target": "es2017",
-    "skipLibCheck": false,
-    "alwaysStrict": true,
-    "useUnknownInCatchVariables": true,
-    "strictFunctionTypes": true,
-    "strictBindCallApply": true,
-    "strictPropertyInitialization": true,
-    "noImplicitThis": true,
-    "noImplicitAny": true,
-    "strictNullChecks": true
+    "skipLibCheck": false
   },
   "exclude": ["./dist/**/*"]
 }
