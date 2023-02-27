@@ -37,21 +37,21 @@ const TREZOR_CONNECT_MANIFEST = {
   appUrl: 'https://metamask.io',
 };
 
-export type TrezorControllerOptions = {
+export interface TrezorControllerOptions {
   hdPath?: string;
   accounts?: string[];
   page?: number;
   perPage?: number;
-};
+}
 
-export type TrezorControllerState = {
+export interface TrezorControllerState {
   hdPath: string;
   accounts: readonly string[];
   page: number;
   paths: Record<string, number>;
   perPage: number;
   unlockedAccount: number;
-};
+}
 
 async function wait(ms: number) {
   return new Promise((resolve) => setTimeout(resolve, ms));
@@ -322,7 +322,7 @@ export class TrezorKeyring extends EventEmitter {
         // Because tx will be immutable, first get a plain javascript object that
         // represents the transaction. Using txData here as it aligns with the
         // nomenclature of ethereumjs/tx.
-        const txData = tx.toJSON() as TxData;
+        const txData: TxData = tx.toJSON();
         // The fromTxData utility expects a type to support transactions with a type other than 0
         txData.type = tx.type;
         // The fromTxData utility expects v,r and s to be hex prefixed
@@ -374,7 +374,7 @@ export class TrezorKeyring extends EventEmitter {
       transaction = {
         ...tx.toJSON(),
         chainId,
-        to: this.#normalize(tx.to as unknown as Buffer),
+        to: this.#normalize(ethUtil.toBuffer(tx.to)),
       } as EthereumTransaction | EthereumTransactionEIP1559;
     }
 

@@ -55,7 +55,7 @@
     "@metamask/eslint-config": "^8.0.0",
     "@metamask/eslint-config-mocha": "^8.0.0",
     "@metamask/eslint-config-nodejs": "^8.0.0",
-    "@metamask/eslint-config-typescript": "^11.1.0",
+    "@metamask/eslint-config-typescript": "^8.0.0",
     "@types/chai": "^4.3.4",
     "@types/chai-spies": "^1.0.3",
     "@types/ethereumjs-tx": "^1.0.1",

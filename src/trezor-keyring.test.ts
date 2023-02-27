@@ -434,7 +434,7 @@ describe('TrezorKeyring', function () {
       sinon.stub(fakeTx, 'verifySignature').callsFake(() => true);
       sinon
         .stub(fakeTx, 'getSenderAddress')
-        .callsFake(() => fakeAccounts[0] as unknown as Buffer);
+        .callsFake(() => Address.fromString(fakeAccounts[0]).toBuffer());
 
       const returnedTx = await keyring.signTransaction(fakeAccounts[0], fakeTx);
       // assert that the v,r,s values got assigned to tx.
@@ -720,7 +720,7 @@ describe('TrezorKeyring', function () {
 
   describe('setHdPath', function () {
     const initialProperties = {
-      hdPath: `m/44'/60'/0'/0` as "m/44'/60'/0'/0",
+      hdPath: `m/44'/60'/0'/0` as const,
       accounts: ['Account 1'],
       page: 2,
       perPage: 10,
