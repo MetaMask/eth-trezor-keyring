@@ -318,7 +318,7 @@ class TrezorKeyring extends EventEmitter {
       const status = await this.unlock();
       await wait(status === 'just unlocked' ? DELAY_BETWEEN_POPUPS : 0);
       const response = await TrezorConnect.ethereumSignTransaction({
-        path: this._pathFromAddress(address),
+        path: await this._pathFromAddress(address),
         transaction,
       });
       if (response.success) {
@@ -349,51 +349,30 @@ class TrezorKeyring extends EventEmitter {
   }
 
   // For personal_sign, we need to prefix the message:
-  signPersonalMessage(withAccount, message) {
-    return new Promise((resolve, reject) => {
-      this.unlock()
-        .then((status) => {
-          setTimeout(
-            (_) => {
-              TrezorConnect.ethereumSignMessage({
-                path: this._pathFromAddress(withAccount),
-                message: ethUtil.stripHexPrefix(message),
-                hex: true,
-              })
-                .then((response) => {
-                  if (response.success) {
-                    if (
-                      response.payload.address !==
-                      ethUtil.toChecksumAddress(withAccount)
-                    ) {
-                      reject(
-                        new Error('signature doesnt match the right address'),
-                      );
-                    }
-                    const signature = `0x${response.payload.signature}`;
-                    resolve(signature);
-                  } else {
-                    reject(
-                      new Error(
-                        (response.payload && response.payload.error) ||
-                          'Unknown error',
-                      ),
-                    );
-                  }
-                })
-                .catch((e) => {
-                  reject(new Error((e && e.toString()) || 'Unknown error'));
-                });
-              // This is necessary to avoid popup collision
-              // between the unlock & sign trezor popups
-            },
-            status === 'just unlocked' ? DELAY_BETWEEN_POPUPS : 0,
-          );
-        })
-        .catch((e) => {
-          reject(new Error((e && e.toString()) || 'Unknown error'));
-        });
-    });
+  async signPersonalMessage(withAccount, message) {
+    try {
+      const status = await this.unlock();
+      await wait(status === 'just unlocked' ? DELAY_BETWEEN_POPUPS : 0);
+      const response = await TrezorConnect.ethereumSignMessage({
+        path: await this._pathFromAddress(withAccount),
+        message: ethUtil.stripHexPrefix(message),
+        hex: true,
+      });
+      if (response.success) {
+        if (
+          response.payload.address !== ethUtil.toChecksumAddress(withAccount)
+        ) {
+          throw new Error("signature doesn't match the right address");
+        }
+        const signature = `0x${response.payload.signature}`;
+        return signature;
+      }
+      throw new Error(
+        (response.payload && response.payload.error) || 'Unknown error',
+      );
+    } catch (e) {
+      throw new Error((e && e.toString()) || 'Unknown error');
+    }
   }
 
   /**
@@ -420,7 +399,7 @@ class TrezorKeyring extends EventEmitter {
     await wait(status === 'just unlocked' ? DELAY_BETWEEN_POPUPS : 0);
 
     const response = await TrezorConnect.ethereumSignTypedData({
-      path: this._pathFromAddress(address),
+      path: await this._pathFromAddress(address),
       data: {
         types: { EIP712Domain, ...otherTypes },
         message,
@@ -501,7 +480,26 @@ class TrezorKeyring extends EventEmitter {
     return ethUtil.toChecksumAddress(`0x${address}`);
   }
 
-  _pathFromAddress(address) {
+  async _pathFromAddress(address) {
+    // First, assert that the pubkey which MetaMask remembers is the same as the one Trezor knows
+    const response = await TrezorConnect.getPublicKey({
+      path: this.hdPath,
+      coin: 'ETH',
+    });
+    if (!response.success) {
+      throw new Error(
+        (response.payload && response.payload.error) || 'Unknown error',
+      );
+    }
+    const pubkeyInTrezor = response.payload.publicKey;
+    const pubkeyInMetaMask = this.hdk.publicKey.toString('hex');
+    if (pubkeyInTrezor !== pubkeyInMetaMask) {
+      throw new Error(
+        'The public key which MetaMask remembers is different from the one Trezor knows. Please set the correct account.',
+      );
+    }
+
+    // then, the prerequisite is met, so we can derive the address
     const checksummedAddress = ethUtil.toChecksumAddress(address);
     let index = this.paths[checksummedAddress];
     if (typeof index === 'undefined') {
