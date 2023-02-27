@@ -819,7 +819,7 @@ __metadata:
     "@metamask/eth-sig-util": ^5.0.2
     "@metamask/utils": ^4.0.0
     "@trezor/connect-plugin-ethereum": ^9.0.1
-    "@trezor/connect-web": 9.0.6
+    "@trezor/connect-web": ^9.0.6
     "@types/chai": ^4.3.4
     "@types/chai-spies": ^1.0.3
     "@types/ethereumjs-tx": ^1.0.1
@@ -1150,7 +1150,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@trezor/connect-web@npm:9.0.6":
+"@trezor/connect-web@npm:^9.0.6":
   version: 9.0.6
   resolution: "@trezor/connect-web@npm:9.0.6"
   dependencies:
