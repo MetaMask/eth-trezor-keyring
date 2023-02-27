@@ -1,1 +1,1 @@
-export * from './TrezorKeyring';
+export * from './trezor-keyring';

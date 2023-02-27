@@ -18,7 +18,7 @@ import { SignTypedDataVersion } from '@metamask/eth-sig-util';
 import selfShim from '../test/self.shim';
 import navigatorShim from '../test/navigator.shim';
 import windowShim from '../test/window.shim';
-import { TrezorKeyring } from '.';
+import { TrezorKeyring } from './trezor-keyring';
 
 global.window = windowShim;
 global.navigator = navigatorShim;
