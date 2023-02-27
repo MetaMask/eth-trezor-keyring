@@ -554,9 +554,8 @@ export class TrezorKeyring extends EventEmitter {
     return ethUtil.bufferToHex(buf).toString();
   }
 
-  // eslint-disable-next-line
-  #addressFromIndex(pathBase: string, i: number) {
-    const dkey = this.hdk.derive(`${pathBase}/${i}`);
+  #addressFromIndex(basePath: string, i: number) {
+    const dkey = this.hdk.derive(`${basePath}/${i}`);
     const address = ethUtil
       .publicToAddress(dkey.publicKey, true)
       .toString('hex');
