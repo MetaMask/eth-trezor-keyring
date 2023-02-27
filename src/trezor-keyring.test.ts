@@ -48,9 +48,6 @@ const fakeAccounts = [
 
 const fakeXPubKey =
   'xpub6FnCn6nSzZAw5Tw7cgR9bi15UV96gLZhjDstkXXxvCLsUXBGXPdSnLFbdpq8p9HmGsApME5hQTZ3emM2rnY5agb9rXpVGyy3bdW6EEgAtqt';
-// `fromExtendedKey` is missing from `@types/hdkey`
-// eslint-disable-next-line @typescript-eslint/ban-ts-comment
-// @ts-ignore next-line
 const fakeHdKey = HDKey.fromExtendedKey(fakeXPubKey);
 const fakeTx = new EthereumTx({
   nonce: '0x00',

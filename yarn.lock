@@ -822,7 +822,7 @@ __metadata:
     "@types/chai": ^4.3.4
     "@types/chai-spies": ^1.0.3
     "@types/ethereumjs-tx": ^1.0.1
-    "@types/hdkey": ^0.7.0
+    "@types/hdkey": ^2.0.1
     "@types/mocha": ^5.0.0
     "@types/node": ^14.0.0
     "@types/sinon": ^9.0.10
@@ -1300,12 +1300,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/hdkey@npm:^0.7.0":
-  version: 0.7.1
-  resolution: "@types/hdkey@npm:0.7.1"
+"@types/hdkey@npm:^2.0.1":
+  version: 2.0.1
+  resolution: "@types/hdkey@npm:2.0.1"
   dependencies:
     "@types/node": "*"
-  checksum: 5620f7b382f1a30523683ef48e336f4c03c79e8dbcafe97e0dde1b0049bdb06481d9353f72bb612ea74376fd8db4a506456214d939f4beb2db5361a1e144d03a
+  checksum: 2593145197b17c7867987428c568f2840cbdd00eae8cfe43538dbb60b158c9e6ca2094007643f51e8dd392d00fc0e806ee22e2755180d94b19dbe3d508ecb23f
   languageName: node
   linkType: hard
 
