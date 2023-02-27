@@ -117,9 +117,7 @@ export class TrezorKeyring extends EventEmitter {
 
   constructor(opts: TrezorControllerOptions = {}) {
     super();
-    this.deserialize(opts).catch((e) => {
-      throw new Error(e?.toString() ?? 'Unknown error');
-    });
+    this.deserialize(opts);
 
     TrezorConnect.on(DEVICE_EVENT, (event) => {
       if (hasDevicePayload(event)) {
@@ -131,8 +129,6 @@ export class TrezorKeyring extends EventEmitter {
       TrezorConnect.init({
         manifest: TREZOR_CONNECT_MANIFEST,
         lazyLoad: true,
-      }).catch((e) => {
-        throw new Error(e?.toString() ?? 'Unknown error');
       });
       this.trezorConnectInitiated = true;
     }
@@ -152,9 +148,7 @@ export class TrezorKeyring extends EventEmitter {
     // This removes the Trezor Connect iframe from the DOM
     // This method is not well documented, but the code it calls can be seen
     // here: https://github.com/trezor/connect/blob/dec4a56af8a65a6059fb5f63fa3c6690d2c37e00/src/js/iframe/builder.js#L181
-    TrezorConnect.dispose().catch((e) => {
-      throw new Error(e?.toString() ?? 'Unknown error');
-    });
+    TrezorConnect.dispose();
   }
 
   async serialize(): Promise<TrezorControllerState> {

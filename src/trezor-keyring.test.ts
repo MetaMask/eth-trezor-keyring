@@ -137,31 +137,22 @@ describe('TrezorKeyring', function () {
     it('constructs', function (done) {
       const t = new TrezorKeyring({ hdPath: `m/44'/60'/0'/0` });
       assert.equal(typeof t, 'object');
-      t.getAccounts()
-        .then((accounts) => {
-          assert.equal(Array.isArray(accounts), true);
-          done();
-        })
-        .catch((e) => {
-          throw new Error(e?.toString() ?? 'Unknown error');
-        });
+      t.getAccounts().then((accounts) => {
+        assert.equal(Array.isArray(accounts), true);
+        done();
+      });
     });
   });
 
   describe('serialize', function () {
     it('serializes an instance', function (done) {
-      keyring
-        .serialize()
-        .then((output) => {
-          assert.equal(output.page, 0);
-          assert.equal(output.hdPath, `m/44'/60'/0'/0`);
-          assert.equal(Array.isArray(output.accounts), true);
-          assert.equal(output.accounts.length, 0);
-          done();
-        })
-        .catch((e) => {
-          throw new Error(e?.toString() ?? 'Unknown error');
-        });
+      keyring.serialize().then((output) => {
+        assert.equal(output.page, 0);
+        assert.equal(output.hdPath, `m/44'/60'/0'/0`);
+        assert.equal(Array.isArray(output.accounts), true);
+        assert.equal(output.accounts.length, 0);
+        done();
+      });
     });
   });
 
@@ -182,9 +173,6 @@ describe('TrezorKeyring', function () {
           assert.equal(serialized.page, 10, 'restores page');
           assert.equal(serialized.hdPath, someHdPath, 'restores hdPath');
           done();
-        })
-        .catch((e) => {
-          throw new Error(e?.toString() ?? 'Unknown error');
         });
     });
   });
@@ -197,14 +185,9 @@ describe('TrezorKeyring', function () {
 
   describe('unlock', function () {
     it('should resolve if we have a public key', function (done) {
-      keyring
-        .unlock()
-        .then((_) => {
-          done();
-        })
-        .catch((e) => {
-          throw new Error(e?.toString() ?? 'Unknown error');
-        });
+      keyring.unlock().then((_) => {
+        done();
+      });
     });
 
     it('should call TrezorConnect.getPublicKey if we dont have a public key', async function () {
@@ -233,15 +216,10 @@ describe('TrezorKeyring', function () {
     describe('with no arguments', function () {
       it('returns a single account', function (done) {
         keyring.setAccountToUnlock(0);
-        keyring
-          .addAccounts()
-          .then((accounts) => {
-            assert.equal(accounts.length, 1);
-            done();
-          })
-          .catch((e) => {
-            throw new Error(e?.toString() ?? 'Unknown error');
-          });
+        keyring.addAccounts().then((accounts) => {
+          assert.equal(accounts.length, 1);
+          done();
+        });
       });
 
       it('returns the custom accounts desired', async function () {
@@ -257,30 +235,20 @@ describe('TrezorKeyring', function () {
     describe('with a numeric argument', function () {
       it('returns that number of accounts', function (done) {
         keyring.setAccountToUnlock(0);
-        keyring
-          .addAccounts(5)
-          .then((accounts) => {
-            assert.equal(accounts.length, 5);
-            done();
-          })
-          .catch((e) => {
-            throw new Error(e?.toString() ?? 'Unknown error');
-          });
+        keyring.addAccounts(5).then((accounts) => {
+          assert.equal(accounts.length, 5);
+          done();
+        });
       });
 
       it('returns the expected accounts', function (done) {
         keyring.setAccountToUnlock(0);
-        keyring
-          .addAccounts(3)
-          .then((accounts) => {
-            assert.equal(accounts[0], fakeAccounts[0]);
-            assert.equal(accounts[1], fakeAccounts[1]);
-            assert.equal(accounts[2], fakeAccounts[2]);
-            done();
-          })
-          .catch((e) => {
-            throw new Error(e?.toString() ?? 'Unknown error');
-          });
+        keyring.addAccounts(3).then((accounts) => {
+          assert.equal(accounts[0], fakeAccounts[0]);
+          assert.equal(accounts[1], fakeAccounts[1]);
+          assert.equal(accounts[2], fakeAccounts[2]);
+          done();
+        });
       });
     });
   });
@@ -289,18 +257,13 @@ describe('TrezorKeyring', function () {
     describe('if the account exists', function () {
       it('should remove that account', function (done) {
         keyring.setAccountToUnlock(0);
-        keyring
-          .addAccounts()
-          .then(async (accounts) => {
-            assert.equal(accounts.length, 1);
-            keyring.removeAccount(fakeAccounts[0]);
-            const accountsAfterRemoval = await keyring.getAccounts();
-            assert.equal(accountsAfterRemoval.length, 0);
-            done();
-          })
-          .catch((e) => {
-            throw new Error(e?.toString() ?? 'Unknown error');
-          });
+        keyring.addAccounts().then(async (accounts) => {
+          assert.equal(accounts.length, 1);
+          keyring.removeAccount(fakeAccounts[0]);
+          const accountsAfterRemoval = await keyring.getAccounts();
+          assert.equal(accountsAfterRemoval.length, 0);
+          done();
+        });
       });
 
       it('should remove only the account requested', async function () {
@@ -730,9 +693,7 @@ describe('TrezorKeyring', function () {
     const mockPaths = { '0x123': 1 };
 
     beforeEach(function () {
-      keyring.deserialize(initialProperties).catch((e) => {
-        throw new Error(e?.toString() ?? 'Unknown error');
-      });
+      keyring.deserialize(initialProperties);
       keyring.paths = mockPaths;
       keyring.setAccountToUnlock(accountToUnlock.toString(16));
     });
