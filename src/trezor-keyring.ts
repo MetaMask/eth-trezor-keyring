@@ -3,6 +3,7 @@ import * as ethUtil from '@ethereumjs/util';
 import HDKey from 'hdkey';
 import TrezorConnect, {
   Device,
+  DeviceEventMessage,
   DEVICE_EVENT,
   EthereumTransactionEIP1559,
 } from '@trezor/connect-web';
@@ -19,6 +20,7 @@ import {
   SignTypedDataVersion,
   MessageTypes,
 } from '@metamask/eth-sig-util';
+import { hasProperty } from '@metamask/utils';
 
 const hdPathString = `m/44'/60'/0'/0`;
 const SLIP0044TestnetPath = `m/44'/1'/0'/0`;
@@ -55,6 +57,20 @@ export interface TrezorControllerState {
 
 async function wait(ms: number) {
   return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+/**
+ * Checks if a Trezor Device Event Message is
+ * an event message with `event.payload` as Device
+ * and with property `features`
+ *
+ * @param event Trezor device event message
+ * @returns
+ */
+function hasDevicePayload(
+  event: DeviceEventMessage,
+): event is DeviceEventMessage & { payload: Device } {
+  return hasProperty(event.payload, 'features');
 }
 
 /**
@@ -106,8 +122,8 @@ export class TrezorKeyring extends EventEmitter {
     });
 
     TrezorConnect.on(DEVICE_EVENT, (event) => {
-      if ((event?.payload as Device)?.features) {
-        this.model = (event.payload as Device)?.features?.model;
+      if (hasDevicePayload(event)) {
+        this.model = event.payload.features?.model;
       }
     });
 
