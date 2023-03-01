@@ -497,8 +497,8 @@ export class TrezorKeyring extends EventEmitter {
       domain = {},
       primaryType,
       // snake_case since Trezor uses Protobuf naming conventions here
-      domain_separator_hash, // eslint-disable-line
-      message_hash, // eslint-disable-line
+      domain_separator_hash, // eslint-disable-line camelcase
+      message_hash, // eslint-disable-line camelcase
     } = dataWithHashes;
 
     // This is necessary to avoid popup collision
@@ -514,13 +514,10 @@ export class TrezorKeyring extends EventEmitter {
         domain,
         primaryType,
       },
-      // eslint-disable-next-line @typescript-eslint/naming-convention
-      metamask_v4_compat: true,
+      metamask_v4_compat: true, // eslint-disable-line camelcase
       // Trezor 1 only supports blindly signing hashes
-      // eslint-disable-next-line @typescript-eslint/naming-convention
-      domain_separator_hash,
-      // eslint-disable-next-line
-      message_hash: message_hash ?? '',
+      domain_separator_hash, // eslint-disable-line camelcase
+      message_hash: message_hash ?? '', // eslint-disable-line camelcase
     });
 
     if (response.success) {
