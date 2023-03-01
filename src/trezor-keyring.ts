@@ -359,12 +359,26 @@ export class TrezorKeyring extends EventEmitter {
    * @returns The signed transaction, an instance of either new-style or old-style
    * ethereumjs transaction.
    */
-  async #signTransaction<T extends TypedTransaction | OldEthJsTransaction>(
+  async #signTransaction(
     address: string,
     chainId: number,
-    tx: T,
-    handleSigning: (tx: EthereumSignedTx) => T,
-  ): Promise<T> {
+    tx: TypedTransaction,
+    handleSigning: (tx: EthereumSignedTx) => TypedTransaction,
+  ): Promise<TypedTransaction>;
+
+  async #signTransaction(
+    address: string,
+    chainId: number,
+    tx: OldEthJsTransaction,
+    handleSigning: (tx: EthereumSignedTx) => OldEthJsTransaction,
+  ): Promise<OldEthJsTransaction>;
+
+  async #signTransaction(
+    address: string,
+    chainId: number,
+    tx: any,
+    handleSigning: (tx: EthereumSignedTx) => any,
+  ): Promise<any> {
     let transaction: EthereumTransaction | EthereumTransactionEIP1559;
     if (isOldStyleEthereumjsTx(tx)) {
       // legacy transaction from ethereumjs-tx package has no .toJSON() function,
