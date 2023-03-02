@@ -492,7 +492,7 @@ export class TrezorKeyring extends EventEmitter {
     // set default values for signTypedData
     // Trezor is stricter than @metamask/eth-sig-util in what it accepts
     const {
-      types: { EIP712Domain = [], ...otherTypes } = {},
+      types,
       message = {},
       domain = {},
       primaryType,
@@ -509,7 +509,7 @@ export class TrezorKeyring extends EventEmitter {
     const response = await TrezorConnect.ethereumSignTypedData({
       path: this.#pathFromAddress(address),
       data: {
-        types: { EIP712Domain, ...otherTypes } as T,
+        types: { ...types, EIP712Domain: types.EIP712Domain ?? [] },
         message,
         domain,
         primaryType,
