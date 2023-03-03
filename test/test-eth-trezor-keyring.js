@@ -694,4 +694,101 @@ describe('TrezorKeyring', function () {
       }
     });
   });
+
+  describe('getVendor', function () {
+    it('should call TrezorConnect.getFeatures if we dont have vendor name', async function () {
+      sinon
+        .stub(TrezorConnect, 'getFeatures')
+        .callsFake(() => Promise.resolve({}));
+
+      await keyring.getVendor();
+      assert(TrezorConnect.getFeatures.calledOnce);
+    });
+
+    it('should return null when TrezorConnect.getFeatures resolves with an object that does not have a success property', async function () {
+      sinon
+        .stub(TrezorConnect, 'getFeatures')
+        .callsFake(() => Promise.resolve({}));
+
+      const vendor = await keyring.getVendor();
+      assert.equal(vendor, null);
+    });
+
+    it('should return trezor when getFeatures does not have minor_version or patch_version', async function () {
+      sinon.stub(TrezorConnect, 'getFeatures').callsFake(() =>
+        Promise.resolve({
+          success: true,
+          payload: {
+            vendor: 'trezor.io',
+          },
+        }),
+      );
+
+      const vendor = await keyring.getVendor();
+      assert.equal(vendor, 'trezor');
+    });
+
+    it('should return onekey when minor_version and patch_version is a special version', async function () {
+      sinon.stub(TrezorConnect, 'getFeatures').callsFake(() =>
+        Promise.resolve({
+          success: true,
+          payload: {
+            minor_version: 99,
+            patch_version: 99,
+            vendor: 'trezor.io',
+          },
+        }),
+      );
+
+      const vendor = await keyring.getVendor();
+      assert.equal(vendor, 'onekey');
+    });
+
+    it('should return onekey when vendor field is onekey.so', async function () {
+      sinon.stub(TrezorConnect, 'getFeatures').callsFake(() =>
+        Promise.resolve({
+          success: true,
+          payload: {
+            minor_version: 1,
+            patch_version: 1,
+            vendor: 'onekey.so',
+          },
+        }),
+      );
+
+      const vendor = await keyring.getVendor();
+      assert.equal(vendor, 'onekey');
+    });
+
+    it('should return null when TrezorConnect.getFeatures rejects with an error', async function () {
+      sinon.stub(TrezorConnect, 'getFeatures').callsFake(() =>
+        // eslint-disable-next-line prefer-promise-reject-errors
+        Promise.reject({
+          success: false,
+          payload: { error: 'mock error', code: 'mock error code' },
+        }),
+      );
+
+      const vendor = await keyring.getVendor();
+      assert.equal(vendor, null);
+    });
+
+    it('should called once TrezorConnect.getFeatures function when getVendor called more then once', async function () {
+      sinon.stub(TrezorConnect, 'getFeatures').callsFake(() =>
+        Promise.resolve({
+          success: true,
+          payload: {
+            minor_version: 1,
+            patch_version: 1,
+            vendor: 'onekey.so',
+          },
+        }),
+      );
+
+      for (let i = 0; i < 10; i++) {
+        await keyring.getVendor();
+      }
+      assert(TrezorConnect.getFeatures.calledOnce);
+    });
+  });
 });

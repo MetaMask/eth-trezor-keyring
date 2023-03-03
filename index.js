@@ -22,6 +22,36 @@ const TREZOR_CONNECT_MANIFEST = {
   appUrl: 'https://metamask.io',
 };
 
+const oneKeySpecialVersion = 99;
+const oneKeyVendor = 'onekey.so';
+
+/**
+ * get the vendor name of the hardware wallet
+ * @param {object} features
+ * @returns {'onekey' | 'trezor' | undefined}
+ */
+function getVendorName(features) {
+  // If the value of features is null, set vendor to the default value
+  if (!features) {
+    return undefined;
+  }
+
+  // No special field, default is trezor device
+  if (!features.minor_version || !features.patch_version) {
+    return 'trezor';
+  }
+
+  if (
+    features.vendor === oneKeyVendor ||
+    (features.minor_version === oneKeySpecialVersion &&
+      features.patch_version === oneKeySpecialVersion)
+  ) {
+    return 'onekey';
+  }
+
+  return 'trezor';
+}
+
 function wait(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
@@ -58,6 +88,7 @@ class TrezorKeyring extends EventEmitter {
     this.perPage = 5;
     this.unlockedAccount = 0;
     this.paths = {};
+    this.vendor = undefined;
     this.deserialize(opts);
     this.trezorConnectInitiated = false;
 
@@ -81,6 +112,34 @@ class TrezorKeyring extends EventEmitter {
    */
   getModel() {
     return this.model;
+  }
+
+  /**
+   * Gets the vendor, if known.
+   *
+   * @returns {"trezor" | "onekey" | null}
+   */
+  async getVendor() {
+    return this.vendor || (this.vendor = await this.fetchVendor());
+  }
+
+  /**
+   * fetch vendor by call getFeatures
+   * @private
+   * @param {object} features
+   * @returns {'onekey' | 'trezor' | null}
+   */
+  async fetchVendor() {
+    try {
+      const response = await TrezorConnect.getFeatures();
+      if (!response.success) {
+        return null;
+      }
+      const vendor = getVendorName(response.payload);
+      return vendor;
+    } catch (err) {
+      return null;
+    }
   }
 
   dispose() {
