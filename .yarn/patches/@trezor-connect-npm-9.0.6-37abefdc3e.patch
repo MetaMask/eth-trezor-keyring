@@ -1,0 +1,46 @@
+diff --git a/lib/events/ui-request.d.ts b/lib/events/ui-request.d.ts
+index 041673460ea3aa3403e5d7df71f9c81a985af15b..3fcdb601e430e9b6a9d8953889adc8772e70bd5d 100644
+--- a/lib/events/ui-request.d.ts
++++ b/lib/events/ui-request.d.ts
+@@ -1,4 +1,3 @@
+-import type { EventTypeDeviceSelected } from '@trezor/connect-analytics';
+ import type { PROTO } from '../constants';
+ import type { TransportDisableWebUSB, TransportRequestWebUSBDevice } from './transport';
+ import type { Device, CoinInfo, BitcoinNetworkInfo } from '../types';
+@@ -129,6 +128,36 @@ export interface UiRequestPermission {
+         device: Device;
+     };
+ }
++export enum EventType {
++    AppReady = 'app/ready',
++    AppInfo = 'app/info',
++
++    ViewChange = 'view/change',
++
++    SettingsTracking = 'settings/tracking',
++    SettingsPermissions = 'settings/permissions',
++
++    WalletType = 'wallet/type',
++
++    DeviceSelected = 'device/selected',
++}
++export type EventTypeDeviceSelected = {
++    type: EventType.DeviceSelected;
++    payload: {
++        mode: 'normal' | 'bootloader' | 'initialize' | 'seedless' | '';
++        pinProtection: boolean | '';
++        passphraseProtection: boolean | '';
++        backupType: string;
++        language: string;
++        model: string;
++        vendor: string;
++        // firmware: string;
++        firmwareRevision: string;
++        firmwareType: string;
++        bootloaderHash: string;
++        // bootloaderVersion: string;
++    };
++};
+ export interface UiRequestConfirmation {
+     type: typeof UI_REQUEST.REQUEST_CONFIRMATION;
+     payload: {

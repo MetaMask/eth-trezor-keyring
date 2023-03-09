@@ -1,9 +1,26 @@
-const { EventEmitter } = require('events');
-const ethUtil = require('@ethereumjs/util');
-const HDKey = require('hdkey');
-const TrezorConnect = require('@trezor/connect-web').default;
-const { TransactionFactory } = require('@ethereumjs/tx');
-const { transformTypedData } = require('@trezor/connect-plugin-ethereum');
+import { EventEmitter } from 'events';
+import * as ethUtil from '@ethereumjs/util';
+import HDKey from 'hdkey';
+import TrezorConnect, {
+  Device,
+  DeviceEventMessage,
+  DEVICE_EVENT,
+  EthereumTransactionEIP1559,
+} from '@trezor/connect-web';
+import type {
+  EthereumSignedTx,
+  EthereumTransaction,
+} from '@trezor/connect-web';
+import { TransactionFactory } from '@ethereumjs/tx';
+import type { TypedTransaction, TxData } from '@ethereumjs/tx';
+import type OldEthJsTransaction from 'ethereumjs-tx';
+import { transformTypedData } from '@trezor/connect-plugin-ethereum';
+import {
+  TypedMessage,
+  SignTypedDataVersion,
+  MessageTypes,
+} from '@metamask/eth-sig-util';
+import { hasProperty } from '@metamask/utils';
 
 const hdPathString = `m/44'/60'/0'/0`;
 const SLIP0044TestnetPath = `m/44'/1'/0'/0`;
@@ -11,7 +28,7 @@ const SLIP0044TestnetPath = `m/44'/1'/0'/0`;
 const ALLOWED_HD_PATHS = {
   [hdPathString]: true,
   [SLIP0044TestnetPath]: true,
-};
+} as const;
 
 const keyringType = 'Trezor Hardware';
 const pathBase = 'm';
@@ -22,14 +39,39 @@ const TREZOR_CONNECT_MANIFEST = {
   appUrl: 'https://metamask.io',
 };
 
-function wait(ms) {
+export interface TrezorControllerOptions {
+  hdPath?: string;
+  accounts?: string[];
+  page?: number;
+  perPage?: number;
+}
+
+export interface TrezorControllerState {
+  hdPath: string;
+  accounts: readonly string[];
+  page: number;
+  paths: Record<string, number>;
+  perPage: number;
+  unlockedAccount: number;
+}
+
+async function wait(ms: number) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
 /**
- * @typedef {import('@ethereumjs/tx').TypedTransaction} TypedTransaction
- * @typedef {InstanceType<import("ethereumjs-tx")>} OldEthJsTransaction
+ * Checks if a Trezor Device Event Message is
+ * an event message with `event.payload` as Device
+ * and with property `features`
+ *
+ * @param event Trezor device event message
+ * @returns
  */
+function hasDevicePayload(
+  event: DeviceEventMessage,
+): event is DeviceEventMessage & { payload: Device } {
+  return hasProperty(event.payload, 'features');
+}
 
 /**
  * Check if the given transaction is made with ethereumjs-tx or @ethereumjs/tx
@@ -41,34 +83,53 @@ function wait(ms) {
  * Expected shape and type
  * of data for v, r and s differ (Buffer (old) vs BN (new)).
  *
- * @param {TypedTransaction | OldEthJsTransaction} tx
- * @returns {tx is OldEthJsTransaction} Returns `true` if tx is an old-style ethereumjs-tx transaction.
+ * @param tx
+ * @returns Returns `true` if tx is an old-style ethereumjs-tx transaction.
  */
-function isOldStyleEthereumjsTx(tx) {
-  return typeof tx.getChainId === 'function';
+function isOldStyleEthereumjsTx(
+  tx: TypedTransaction | OldEthJsTransaction,
+): tx is OldEthJsTransaction {
+  return typeof (tx as OldEthJsTransaction).getChainId === 'function';
 }
 
-class TrezorKeyring extends EventEmitter {
-  constructor(opts = {}) {
-    super();
-    this.type = keyringType;
-    this.accounts = [];
-    this.hdk = new HDKey();
-    this.page = 0;
-    this.perPage = 5;
-    this.unlockedAccount = 0;
-    this.paths = {};
-    this.deserialize(opts);
-    this.trezorConnectInitiated = false;
+export class TrezorKeyring extends EventEmitter {
+  static type: string = keyringType;
 
-    TrezorConnect.on('DEVICE_EVENT', (event) => {
-      if (event && event.payload && event.payload.features) {
-        this.model = event.payload.features.model;
+  readonly type: string = keyringType;
+
+  accounts: readonly string[] = [];
+
+  hdk: HDKey = new HDKey();
+
+  hdPath: string = hdPathString;
+
+  page = 0;
+
+  perPage = 5;
+
+  unlockedAccount = 0;
+
+  paths: Record<string, number> = {};
+
+  trezorConnectInitiated = false;
+
+  model?: string;
+
+  constructor(opts: TrezorControllerOptions = {}) {
+    super();
+    this.deserialize(opts);
+
+    TrezorConnect.on(DEVICE_EVENT, (event) => {
+      if (hasDevicePayload(event)) {
+        this.model = event.payload.features?.model;
       }
     });
 
     if (!this.trezorConnectInitiated) {
-      TrezorConnect.init({ manifest: TREZOR_CONNECT_MANIFEST, lazyLoad: true });
+      TrezorConnect.init({
+        manifest: TREZOR_CONNECT_MANIFEST,
+        lazyLoad: true,
+      });
       this.trezorConnectInitiated = true;
     }
   }
@@ -77,9 +138,9 @@ class TrezorKeyring extends EventEmitter {
    * Gets the model, if known.
    * This may be `undefined` if the model hasn't been loaded yet.
    *
-   * @returns {"T" | "1" | undefined}
+   * @returns
    */
-  getModel() {
+  getModel(): string | undefined {
     return this.model;
   }
 
@@ -90,7 +151,7 @@ class TrezorKeyring extends EventEmitter {
     TrezorConnect.dispose();
   }
 
-  serialize() {
+  async serialize(): Promise<TrezorControllerState> {
     return Promise.resolve({
       hdPath: this.hdPath,
       accounts: this.accounts,
@@ -101,19 +162,19 @@ class TrezorKeyring extends EventEmitter {
     });
   }
 
-  deserialize(opts = {}) {
-    this.hdPath = opts.hdPath || hdPathString;
-    this.accounts = opts.accounts || [];
-    this.page = opts.page || 0;
-    this.perPage = opts.perPage || 5;
+  async deserialize(opts: TrezorControllerOptions = {}) {
+    this.hdPath = opts.hdPath ?? hdPathString;
+    this.accounts = opts.accounts ?? [];
+    this.page = opts.page ?? 0;
+    this.perPage = opts.perPage ?? 5;
     return Promise.resolve();
   }
 
   isUnlocked() {
-    return Boolean(this.hdk && this.hdk.publicKey);
+    return Boolean(this.hdk?.publicKey);
   }
 
-  unlock() {
+  async unlock() {
     if (this.isUnlocked()) {
       return Promise.resolve('already unlocked');
     }
@@ -128,24 +189,20 @@ class TrezorKeyring extends EventEmitter {
             this.hdk.chainCode = Buffer.from(response.payload.chainCode, 'hex');
             resolve('just unlocked');
           } else {
-            reject(
-              new Error(
-                (response.payload && response.payload.error) || 'Unknown error',
-              ),
-            );
+            reject(new Error(response.payload?.error || 'Unknown error'));
           }
         })
         .catch((e) => {
-          reject(new Error((e && e.toString()) || 'Unknown error'));
+          reject(new Error(e?.toString() || 'Unknown error'));
         });
     });
   }
 
-  setAccountToUnlock(index) {
-    this.unlockedAccount = parseInt(index, 10);
+  setAccountToUnlock(index: number | string) {
+    this.unlockedAccount = parseInt(String(index), 10);
   }
 
-  addAccounts(n = 1) {
+  async addAccounts(n = 1): Promise<readonly string[]> {
     return new Promise((resolve, reject) => {
       this.unlock()
         .then((_) => {
@@ -153,9 +210,9 @@ class TrezorKeyring extends EventEmitter {
           const to = from + n;
 
           for (let i = from; i < to; i++) {
-            const address = this._addressFromIndex(pathBase, i);
+            const address = this.#addressFromIndex(pathBase, i);
             if (!this.accounts.includes(address)) {
-              this.accounts.push(address);
+              this.accounts = [...this.accounts, address];
             }
             this.page = 0;
           }
@@ -167,20 +224,22 @@ class TrezorKeyring extends EventEmitter {
     });
   }
 
-  getFirstPage() {
+  async getFirstPage() {
     this.page = 0;
-    return this.__getPage(1);
+    return this.#getPage(1);
   }
 
-  getNextPage() {
-    return this.__getPage(1);
+  async getNextPage() {
+    return this.#getPage(1);
   }
 
-  getPreviousPage() {
-    return this.__getPage(-1);
+  async getPreviousPage() {
+    return this.#getPage(-1);
   }
 
-  __getPage(increment) {
+  async #getPage(
+    increment: number,
+  ): Promise<{ address: string; balance: number | null; index: number }[]> {
     this.page += increment;
 
     if (this.page <= 0) {
@@ -196,7 +255,7 @@ class TrezorKeyring extends EventEmitter {
           const accounts = [];
 
           for (let i = from; i < to; i++) {
-            const address = this._addressFromIndex(pathBase, i);
+            const address = this.#addressFromIndex(pathBase, i);
             accounts.push({
               address,
               balance: null,
@@ -212,11 +271,11 @@ class TrezorKeyring extends EventEmitter {
     });
   }
 
-  getAccounts() {
+  async getAccounts() {
     return Promise.resolve(this.accounts.slice());
   }
 
-  removeAccount(address) {
+  removeAccount(address: string) {
     if (
       !this.accounts.map((a) => a.toLowerCase()).includes(address.toLowerCase())
     ) {
@@ -234,27 +293,38 @@ class TrezorKeyring extends EventEmitter {
    * Accepts either an ethereumjs-tx or @ethereumjs/tx transaction, and returns
    * the same type.
    *
-   * @template {TypedTransaction | OldEthJsTransaction} Transaction
-   * @param {string} address - Hex string address.
-   * @param {Transaction} tx - Instance of either new-style or old-style ethereumjs transaction.
-   * @returns {Promise<Transaction>} The signed transaction, an instance of either new-style or old-style
+   * @param address - Hex string address.
+   * @param tx - Instance of either new-style or old-style ethereumjs transaction.
+   * @returns The signed transaction, an instance of either new-style or old-style
    * ethereumjs transaction.
    */
-  signTransaction(address, tx) {
+  async signTransaction(
+    address: string,
+    tx: TypedTransaction | OldEthJsTransaction,
+  ) {
     if (isOldStyleEthereumjsTx(tx)) {
       // In this version of ethereumjs-tx we must add the chainId in hex format
       // to the initial v value. The chainId must be included in the serialized
       // transaction which is only communicated to ethereumjs-tx in this
       // value. In newer versions the chainId is communicated via the 'Common'
       // object.
-      return this._signTransaction(address, tx.getChainId(), tx, (payload) => {
-        tx.v = Buffer.from(payload.v, 'hex');
-        tx.r = Buffer.from(payload.r, 'hex');
-        tx.s = Buffer.from(payload.s, 'hex');
-        return tx;
-      });
+      return this.#signTransaction(
+        address,
+        // @types/ethereumjs-tx and old ethereumjs-tx versions document
+        // this function return value as Buffer, but the actual
+        // Transaction._chainId will always be a number.
+        // See https://github.com/ethereumjs/ethereumjs-tx/blob/v1.3.7/index.js#L126
+        tx.getChainId() as unknown as number,
+        tx,
+        (payload) => {
+          tx.v = Buffer.from(payload.v, 'hex');
+          tx.r = Buffer.from(payload.r, 'hex');
+          tx.s = Buffer.from(payload.s, 'hex');
+          return tx;
+        },
+      );
     }
-    return this._signTransaction(
+    return this.#signTransaction(
       address,
       Number(tx.common.chainId()),
       tx,
@@ -262,7 +332,7 @@ class TrezorKeyring extends EventEmitter {
         // Because tx will be immutable, first get a plain javascript object that
         // represents the transaction. Using txData here as it aligns with the
         // nomenclature of ethereumjs/tx.
-        const txData = tx.toJSON();
+        const txData: TxData = tx.toJSON();
         // The fromTxData utility expects a type to support transactions with a type other than 0
         txData.type = tx.type;
         // The fromTxData utility expects v,r and s to be hex prefixed
@@ -281,28 +351,32 @@ class TrezorKeyring extends EventEmitter {
 
   /**
    *
-   * @template {TypedTransaction | OldEthJsTransaction} Transaction
-   * @param {string} address - Hex string address.
-   * @param {number} chainId - Chain ID
-   * @param {Transaction} tx - Instance of either new-style or old-style ethereumjs transaction.
-   * @param {(import('trezor-connect').EthereumSignedTx) => Transaction} handleSigning - Converts signed transaction
+   * @param address - Hex string address.
+   * @param chainId - Chain ID
+   * @param tx - Instance of either new-style or old-style ethereumjs transaction.
+   * @param handleSigning - Converts signed transaction
    * to the same new-style or old-style ethereumjs-tx.
-   * @returns {Promise<Transaction>} The signed transaction, an instance of either new-style or old-style
+   * @returns The signed transaction, an instance of either new-style or old-style
    * ethereumjs transaction.
    */
-  async _signTransaction(address, chainId, tx, handleSigning) {
-    let transaction;
+  async #signTransaction<T extends TypedTransaction | OldEthJsTransaction>(
+    address: string,
+    chainId: number,
+    tx: T,
+    handleSigning: (tx: EthereumSignedTx) => T,
+  ): Promise<T> {
+    let transaction: EthereumTransaction | EthereumTransactionEIP1559;
     if (isOldStyleEthereumjsTx(tx)) {
       // legacy transaction from ethereumjs-tx package has no .toJSON() function,
       // so we need to convert to hex-strings manually manually
       transaction = {
-        to: this._normalize(tx.to),
-        value: this._normalize(tx.value),
-        data: this._normalize(tx.data),
+        to: this.#normalize(tx.to),
+        value: this.#normalize(tx.value),
+        data: this.#normalize(tx.data),
         chainId,
-        nonce: this._normalize(tx.nonce),
-        gasLimit: this._normalize(tx.gasLimit),
-        gasPrice: this._normalize(tx.gasPrice),
+        nonce: this.#normalize(tx.nonce),
+        gasLimit: this.#normalize(tx.gasLimit),
+        gasPrice: this.#normalize(tx.gasPrice),
       };
     } else {
       // new-style transaction from @ethereumjs/tx package
@@ -310,15 +384,15 @@ class TrezorKeyring extends EventEmitter {
       transaction = {
         ...tx.toJSON(),
         chainId,
-        to: this._normalize(tx.to),
-      };
+        to: this.#normalize(ethUtil.toBuffer(tx.to)),
+      } as EthereumTransaction | EthereumTransactionEIP1559;
     }
 
     try {
       const status = await this.unlock();
       await wait(status === 'just unlocked' ? DELAY_BETWEEN_POPUPS : 0);
       const response = await TrezorConnect.ethereumSignTransaction({
-        path: this._pathFromAddress(address),
+        path: this.#pathFromAddress(address),
         transaction,
       });
       if (response.success) {
@@ -336,27 +410,25 @@ class TrezorKeyring extends EventEmitter {
 
         return newOrMutatedTx;
       }
-      throw new Error(
-        (response.payload && response.payload.error) || 'Unknown error',
-      );
+      throw new Error(response.payload?.error || 'Unknown error');
     } catch (e) {
-      throw new Error((e && e.toString()) || 'Unknown error');
+      throw new Error(e?.toString() ?? 'Unknown error');
     }
   }
 
-  signMessage(withAccount, data) {
+  async signMessage(withAccount: string, data: string) {
     return this.signPersonalMessage(withAccount, data);
   }
 
   // For personal_sign, we need to prefix the message:
-  signPersonalMessage(withAccount, message) {
+  async signPersonalMessage(withAccount: string, message: string) {
     return new Promise((resolve, reject) => {
       this.unlock()
         .then((status) => {
           setTimeout(
-            (_) => {
+            () => {
               TrezorConnect.ethereumSignMessage({
-                path: this._pathFromAddress(withAccount),
+                path: this.#pathFromAddress(withAccount),
                 message: ethUtil.stripHexPrefix(message),
                 hex: true,
               })
@@ -374,15 +446,12 @@ class TrezorKeyring extends EventEmitter {
                     resolve(signature);
                   } else {
                     reject(
-                      new Error(
-                        (response.payload && response.payload.error) ||
-                          'Unknown error',
-                      ),
+                      new Error(response.payload?.error || 'Unknown error'),
                     );
                   }
                 })
                 .catch((e) => {
-                  reject(new Error((e && e.toString()) || 'Unknown error'));
+                  reject(new Error(e?.toString() || 'Unknown error'));
                 });
               // This is necessary to avoid popup collision
               // between the unlock & sign trezor popups
@@ -391,7 +460,7 @@ class TrezorKeyring extends EventEmitter {
           );
         })
         .catch((e) => {
-          reject(new Error((e && e.toString()) || 'Unknown error'));
+          reject(new Error(e?.toString() || 'Unknown error'));
         });
     });
   }
@@ -399,13 +468,17 @@ class TrezorKeyring extends EventEmitter {
   /**
    * EIP-712 Sign Typed Data
    */
-  async signTypedData(address, data, { version }) {
+  async signTypedData<T extends MessageTypes>(
+    address: string,
+    data: TypedMessage<T>,
+    { version }: { version: SignTypedDataVersion },
+  ) {
     const dataWithHashes = transformTypedData(data, version === 'V4');
 
     // set default values for signTypedData
     // Trezor is stricter than @metamask/eth-sig-util in what it accepts
     const {
-      types: { EIP712Domain = [], ...otherTypes } = {},
+      types,
       message = {},
       domain = {},
       primaryType,
@@ -420,17 +493,17 @@ class TrezorKeyring extends EventEmitter {
     await wait(status === 'just unlocked' ? DELAY_BETWEEN_POPUPS : 0);
 
     const response = await TrezorConnect.ethereumSignTypedData({
-      path: this._pathFromAddress(address),
+      path: this.#pathFromAddress(address),
       data: {
-        types: { EIP712Domain, ...otherTypes },
+        types: { ...types, EIP712Domain: types.EIP712Domain ?? [] },
         message,
         domain,
         primaryType,
       },
-      metamask_v4_compat: true,
+      metamask_v4_compat: true, // eslint-disable-line camelcase
       // Trezor 1 only supports blindly signing hashes
-      domain_separator_hash,
-      message_hash,
+      domain_separator_hash, // eslint-disable-line camelcase
+      message_hash: message_hash ?? '', // eslint-disable-line camelcase
     });
 
     if (response.success) {
@@ -440,12 +513,10 @@ class TrezorKeyring extends EventEmitter {
       return response.payload.signature;
     }
 
-    throw new Error(
-      (response.payload && response.payload.error) || 'Unknown error',
-    );
+    throw new Error(response.payload?.error || 'Unknown error');
   }
 
-  exportAccount() {
+  async exportAccount() {
     return Promise.reject(new Error('Not supported on this device'));
   }
 
@@ -465,9 +536,9 @@ class TrezorKeyring extends EventEmitter {
    *
    * @throws {Error] Throws if the HD path is not supported.
    *
-   * @param {string} hdPath - The HD path to set.
+   * @param hdPath - The HD path to set.
    */
-  setHdPath(hdPath) {
+  setHdPath(hdPath: keyof typeof ALLOWED_HD_PATHS) {
     if (!ALLOWED_HD_PATHS[hdPath]) {
       throw new Error(
         `The setHdPath method does not support setting HD Path to ${hdPath}`,
@@ -486,27 +557,24 @@ class TrezorKeyring extends EventEmitter {
     this.hdPath = hdPath;
   }
 
-  /* PRIVATE METHODS */
-
-  _normalize(buf) {
+  #normalize(buf: Buffer) {
     return ethUtil.bufferToHex(buf).toString();
   }
 
-  // eslint-disable-next-line no-shadow
-  _addressFromIndex(pathBase, i) {
-    const dkey = this.hdk.derive(`${pathBase}/${i}`);
+  #addressFromIndex(basePath: string, i: number) {
+    const dkey = this.hdk.derive(`${basePath}/${i}`);
     const address = ethUtil
       .publicToAddress(dkey.publicKey, true)
       .toString('hex');
     return ethUtil.toChecksumAddress(`0x${address}`);
   }
 
-  _pathFromAddress(address) {
+  #pathFromAddress(address: string) {
     const checksummedAddress = ethUtil.toChecksumAddress(address);
     let index = this.paths[checksummedAddress];
     if (typeof index === 'undefined') {
       for (let i = 0; i < MAX_INDEX; i++) {
-        if (checksummedAddress === this._addressFromIndex(pathBase, i)) {
+        if (checksummedAddress === this.#addressFromIndex(pathBase, i)) {
           index = i;
           break;
         }
@@ -519,6 +587,3 @@ class TrezorKeyring extends EventEmitter {
     return `${this.hdPath}/${index}`;
   }
 }
-
-TrezorKeyring.type = keyringType;
-module.exports = TrezorKeyring;

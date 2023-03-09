@@ -18,24 +18,33 @@
   },
   "license": "ISC",
   "author": "Bruno Barbieri",
-  "main": "index.js",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
   "files": [
-    "index.js"
+    "dist/"
   ],
   "scripts": {
-    "lint": "yarn lint:eslint && yarn lint:misc --check",
+    "build": "tsc --project tsconfig.build.json",
+    "build:clean": "rimraf dist && yarn build",
+    "build:docs": "typedoc",
+    "lint": "yarn lint:eslint && yarn lint:misc --check && yarn lint:dependencies",
+    "lint:dependencies": "depcheck",
     "lint:eslint": "eslint . --cache --ext js,ts",
-    "lint:fix": "yarn lint:eslint --fix && yarn lint:misc --write",
+    "lint:fix": "yarn lint:eslint --fix && yarn lint:misc --write && yarn lint:dependencies",
     "lint:misc": "prettier '**/*.json' '**/*.md' '!CHANGELOG.md' '**/*.yml' '!.yarnrc.yml' --ignore-path .gitignore --no-error-on-unmatched-pattern",
-    "test": "mocha"
+    "prepack": "./scripts/prepack.sh",
+    "test": "mocha -r ts-node/register src/**/*.ts"
   },
   "resolutions": {
+    "@trezor/connect@9.0.6": "patch:@trezor/connect@npm%3A9.0.6#./.yarn/patches/@trezor-connect-npm-9.0.6-37abefdc3e.patch",
+    "@types/web": "0.0.69",
     "mocha/mkdirp": "^0.5.1"
   },
   "dependencies": {
     "@ethereumjs/tx": "^4.0.0",
     "@ethereumjs/util": "^8.0.0",
     "@metamask/eth-sig-util": "^5.0.2",
+    "@metamask/utils": "^4.0.0",
     "@trezor/connect-plugin-ethereum": "^9.0.1",
     "@trezor/connect-web": "^9.0.6",
     "hdkey": "0.8.0"
@@ -47,8 +56,20 @@
     "@metamask/eslint-config": "^8.0.0",
     "@metamask/eslint-config-mocha": "^8.0.0",
     "@metamask/eslint-config-nodejs": "^8.0.0",
+    "@metamask/eslint-config-typescript": "^8.0.0",
+    "@types/chai": "^4.3.4",
+    "@types/chai-spies": "^1.0.3",
+    "@types/ethereumjs-tx": "^1.0.1",
+    "@types/hdkey": "^2.0.1",
+    "@types/mocha": "^5.0.0",
+    "@types/node": "^14.0.0",
+    "@types/sinon": "^9.0.10",
+    "@types/w3c-web-usb": "^1.0.6",
+    "@typescript-eslint/eslint-plugin": "^5.43.0",
+    "@typescript-eslint/parser": "^5.43.0",
     "chai": "^4.1.2",
     "chai-spies": "^1.0.0",
+    "depcheck": "^1.4.3",
     "eslint": "^7.26.0",
     "eslint-config-prettier": "^8.3.0",
     "eslint-plugin-import": "^2.22.1",
@@ -59,7 +80,11 @@
     "mocha": "^5.0.4",
     "prettier": "^2.3.0",
     "prettier-plugin-packagejson": "^2.2.12",
-    "sinon": "^9.2.3"
+    "rimraf": "^4.1.2",
+    "sinon": "^9.2.3",
+    "ts-node": "^10.7.0",
+    "typedoc": "^0.23.15",
+    "typescript": "~4.8.4"
   },
   "packageManager": "yarn@3.3.1",
   "engines": {
