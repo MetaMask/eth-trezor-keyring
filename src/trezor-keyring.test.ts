@@ -5,7 +5,6 @@ import * as sinon from 'sinon';
 
 import EthereumTx from 'ethereumjs-tx';
 import HDKey from 'hdkey';
-import TrezorConnect from '@trezor/connect-web';
 import {
   TypedTransaction,
   TransactionFactory,
@@ -15,16 +14,8 @@ import { Common, Chain, Hardfork } from '@ethereumjs/common';
 
 import { Address } from '@ethereumjs/util';
 import { SignTypedDataVersion } from '@metamask/eth-sig-util';
-import selfShim from '../test/self.shim';
-import navigatorShim from '../test/navigator.shim';
-import windowShim from '../test/window.shim';
-import { TrezorKeyring } from './trezor-keyring';
-
-global.window = windowShim;
-global.navigator = navigatorShim;
-global.self = selfShim;
-
-const SIGNING_DELAY = 20;
+import { TrezorKeyring, TREZOR_CONNECT_MANIFEST } from './trezor-keyring';
+import { TrezorBridge } from './trezor-bridge';
 
 const { expect } = chai;
 
@@ -107,16 +98,15 @@ chai.use(spies);
 
 describe('TrezorKeyring', function () {
   let keyring: TrezorKeyring;
+  let bridge: TrezorBridge;
 
   beforeEach(async function () {
-    keyring = new TrezorKeyring();
+    bridge = {} as TrezorBridge;
+    keyring = new TrezorKeyring({ bridge });
     keyring.hdk = fakeHdKey;
   });
 
   afterEach(function () {
-    if (keyring) {
-      keyring.dispose();
-    }
     sinon.restore();
   });
 
@@ -134,13 +124,55 @@ describe('TrezorKeyring', function () {
   });
 
   describe('constructor', function () {
-    it('constructs', function (done) {
-      const t = new TrezorKeyring({ hdPath: `m/44'/60'/0'/0` });
-      assert.equal(typeof t, 'object');
-      t.getAccounts().then((accounts) => {
-        assert.equal(Array.isArray(accounts), true);
-        done();
+    it('constructs', async function () {
+      const keyringInstance = new TrezorKeyring({ bridge });
+      const accounts = await keyringInstance.getAccounts();
+
+      assert.equal(typeof keyringInstance, 'object');
+      assert.equal(Array.isArray(accounts), true);
+    });
+
+    it('throws if a bridge is not provided', async function () {
+      let error: unknown = null;
+
+      try {
+        // eslint-disable-next-line no-new
+        new TrezorKeyring({ bridge: undefined as unknown as TrezorBridge });
+      } catch (e) {
+        error = e;
+      }
+
+      expect(error).to.be.an.instanceof(Error);
+      expect((error as Error).toString()).to.contain(
+        'Bridge is a required dependency for the keyring',
+      );
+    });
+  });
+
+  describe('init', function () {
+    it('initialises the bridge', async function () {
+      const initStub = sinon.stub().resolves();
+      bridge.init = initStub;
+
+      await keyring.init();
+
+      sinon.assert.calledOnce(initStub);
+      sinon.assert.calledWithExactly(initStub, {
+        manifest: TREZOR_CONNECT_MANIFEST,
+        lazyLoad: true,
       });
+    });
+  });
+
+  describe('dispose', function () {
+    it('calls dispose on bridge', async function () {
+      const disposeStub = sinon.stub().resolves();
+      bridge.dispose = disposeStub;
+
+      await keyring.dispose();
+
+      sinon.assert.calledOnce(disposeStub);
+      sinon.assert.calledWithExactly(disposeStub);
     });
   });
 
@@ -191,9 +223,9 @@ describe('TrezorKeyring', function () {
     });
 
     it('should call TrezorConnect.getPublicKey if we dont have a public key', async function () {
-      const getPublicKeyStub = sinon
-        .stub(TrezorConnect, 'getPublicKey')
-        .resolves();
+      const getPublicKeyStub = sinon.stub().resolves();
+      bridge.getPublicKey = getPublicKeyStub;
+
       keyring.hdk = new HDKey();
       try {
         await keyring.unlock();
@@ -201,7 +233,12 @@ describe('TrezorKeyring', function () {
         // Since we only care about ensuring our function gets called,
         // we want to ignore warnings due to stub data
       }
-      assert(getPublicKeyStub.calledOnce);
+
+      sinon.assert.calledOnce(getPublicKeyStub);
+      sinon.assert.calledWithExactly(getPublicKeyStub, {
+        path: `m/44'/60'/0'/0`,
+        coin: 'ETH',
+      });
     });
   });
 
@@ -386,14 +423,12 @@ describe('TrezorKeyring', function () {
 
   describe('signTransaction', function () {
     it('should pass serialized transaction to trezor and return signed tx', async function () {
-      const ethereumSignTransactionStub = sinon
-        .stub(TrezorConnect, 'ethereumSignTransaction')
-        .callsFake(async () => {
-          return Promise.resolve({
-            success: true,
-            payload: { v: '0x1', r: '0x0', s: '0x0' },
-          });
-        });
+      const ethereumSignTransactionStub = sinon.stub().resolves({
+        success: true,
+        payload: { v: '0x1', r: '0x0', s: '0x0' },
+      });
+      bridge.ethereumSignTransaction = ethereumSignTransactionStub;
+
       sinon.stub(fakeTx, 'verifySignature').callsFake(() => true);
       sinon
         .stub(fakeTx, 'getSenderAddress')
@@ -407,7 +442,7 @@ describe('TrezorKeyring', function () {
       // ensure we get a older version transaction back
       assert.equal((returnedTx as EthereumTx).getChainId(), 1);
       assert.equal((returnedTx as TypedTransaction).common, undefined);
-      assert(ethereumSignTransactionStub.calledOnce);
+      sinon.assert.calledOnce(ethereumSignTransactionStub);
     });
 
     it('should pass serialized newer transaction to trezor and return signed tx', async function () {
@@ -418,14 +453,11 @@ describe('TrezorKeyring', function () {
         return newFakeTx;
       });
 
-      const ethereumSignTransactionStub = sinon
-        .stub(TrezorConnect, 'ethereumSignTransaction')
-        .callsFake(async () => {
-          return Promise.resolve({
-            success: true,
-            payload: { v: '0x25', r: '0x0', s: '0x0' },
-          });
-        });
+      const ethereumSignTransactionStub = sinon.stub().resolves({
+        success: true,
+        payload: { v: '0x25', r: '0x0', s: '0x0' },
+      });
+      bridge.ethereumSignTransaction = ethereumSignTransactionStub;
 
       sinon
         .stub(newFakeTx, 'getSenderAddress')
@@ -443,7 +475,7 @@ describe('TrezorKeyring', function () {
         (returnedTx as TypedTransaction).common.chainId().toString(16),
         '1',
       );
-      assert(ethereumSignTransactionStub.calledOnce);
+      sinon.assert.calledOnce(ethereumSignTransactionStub);
     });
 
     it('should pass serialized contract deployment transaction to trezor and return signed tx', async function () {
@@ -454,14 +486,11 @@ describe('TrezorKeyring', function () {
         return contractDeploymentFakeTx;
       });
 
-      const ethereumSignTransactionStub = sinon
-        .stub(TrezorConnect, 'ethereumSignTransaction')
-        .callsFake(async () => {
-          return Promise.resolve({
-            success: true,
-            payload: { v: '0x25', r: '0x0', s: '0x0' },
-          });
-        });
+      const ethereumSignTransactionStub = sinon.stub().resolves({
+        success: true,
+        payload: { v: '0x25', r: '0x0', s: '0x0' },
+      });
+      bridge.ethereumSignTransaction = ethereumSignTransactionStub;
 
       sinon
         .stub(contractDeploymentFakeTx, 'getSenderAddress')
@@ -482,8 +511,8 @@ describe('TrezorKeyring', function () {
         (returnedTx as TypedTransaction).common.chainId().toString(16),
         '1',
       );
-      assert(ethereumSignTransactionStub.calledOnce);
-      assert.deepEqual(ethereumSignTransactionStub.getCall(0).args[0], {
+      sinon.assert.calledOnce(ethereumSignTransactionStub);
+      sinon.assert.calledWithExactly(ethereumSignTransactionStub, {
         path: `m/44'/60'/0'/0/0`,
         transaction: {
           ...contractDeploymentFakeTx.toJSON(),
@@ -511,29 +540,36 @@ describe('TrezorKeyring', function () {
         return tx;
       });
 
-      const ethereumSignTransactionStub = sinon
-        .stub(TrezorConnect, 'ethereumSignTransaction')
-        .callsFake(async (params) => {
-          expect(params.transaction).to.be.an('object');
-          // chainId must be a number, unlike other variables which can be hex-strings
-          expect(params.transaction)
-            .to.have.property('chainId')
-            .to.satisfy(Number.isInteger);
-          expect(params.transaction).to.have.property('maxFeePerGas');
-          expect(params.transaction).to.have.property('maxPriorityFeePerGas');
-          expect(params.transaction).to.not.have.property('gasPrice');
-          return Promise.resolve({
-            success: true,
-            payload: expectedRSV,
-          });
-        });
+      const ethereumSignTransactionStub = sinon.stub().resolves({
+        success: true,
+        payload: expectedRSV,
+      });
+      bridge.ethereumSignTransaction = ethereumSignTransactionStub;
 
       const returnedTx = await keyring.signTransaction(
         fakeAccounts[0],
         fakeTypeTwoTx,
       );
 
-      assert(ethereumSignTransactionStub.calledOnce);
+      sinon.assert.calledOnce(ethereumSignTransactionStub);
+      sinon.assert.calledWithExactly(ethereumSignTransactionStub, {
+        path: "m/44'/60'/0'/0/0",
+        transaction: {
+          chainId: 1,
+          nonce: '0x0',
+          maxPriorityFeePerGas: '0x9184e72a000',
+          maxFeePerGas: '0x19184e72a000',
+          gasLimit: '0x2710',
+          to: '0x0000000000000000000000000000000000000000',
+          value: '0x0',
+          data: '0x7f7465737432000000000000000000000000000000000000000000000000000000600057',
+          accessList: [],
+          v: '0x1',
+          r: undefined,
+          s: undefined,
+        },
+      });
+
       expect(returnedTx.toJSON()).to.deep.equal({
         ...fakeTypeTwoTx.toJSON(),
         ...expectedRSV,
@@ -542,40 +578,34 @@ describe('TrezorKeyring', function () {
   });
 
   describe('signMessage', function () {
-    it('should call TrezorConnect.ethereumSignMessage', function (done) {
-      const ethereumSignMessageStub = sinon
-        .stub(TrezorConnect, 'ethereumSignMessage')
-        .resolves();
+    it('should call TrezorConnect.ethereumSignMessage', async function () {
+      const ethereumSignMessageStub = sinon.stub().resolves({});
+      bridge.ethereumSignMessage = ethereumSignMessageStub;
 
-      keyring.signMessage(fakeAccounts[0], 'some msg').catch((_) => {
+      try {
+        await keyring.signMessage(fakeAccounts[0], 'some msg');
+      } catch (error) {
         // Since we only care about ensuring our function gets called,
         // we want to ignore warnings due to stub data
-      });
+      }
 
-      setTimeout(() => {
-        assert(ethereumSignMessageStub.calledOnce);
-        done();
-      }, SIGNING_DELAY);
+      sinon.assert.calledOnce(ethereumSignMessageStub);
     });
   });
 
   describe('signPersonalMessage', function () {
-    it('should call TrezorConnect.ethereumSignMessage', function (done) {
-      const ethereumSignMessageStub = sinon
-        .stub(TrezorConnect, 'ethereumSignMessage')
-        .resolves();
+    it('should call TrezorConnect.ethereumSignMessage', async function () {
+      const ethereumSignMessageStub = sinon.stub().resolves({});
+      bridge.ethereumSignMessage = ethereumSignMessageStub;
 
-      keyring.signPersonalMessage(fakeAccounts[0], 'some msg').catch((_) => {
+      try {
+        await keyring.signPersonalMessage(fakeAccounts[0], 'some msg');
+      } catch (error) {
         // Since we only care about ensuring our function gets called,
         // we want to ignore warnings due to stub data
-      });
+      }
 
-      setTimeout(() => {
-        setTimeout(() => {
-          assert(ethereumSignMessageStub.calledOnce);
-          done();
-        });
-      }, SIGNING_DELAY);
+      sinon.assert.calledOnce(ethereumSignMessageStub);
     });
   });
 
@@ -606,12 +636,11 @@ describe('TrezorKeyring', function () {
     });
 
     it('should call TrezorConnect.ethereumSignTypedData', async function () {
-      const ethereumSignTypedDataStub = sinon
-        .stub(TrezorConnect, 'ethereumSignTypedData')
-        .callsFake(async () => ({
-          success: true,
-          payload: { signature: '0x00', address: fakeAccounts[0] },
-        }));
+      const ethereumSignTypedDataStub = sinon.stub().resolves({
+        success: true,
+        payload: { signature: '0x00', address: fakeAccounts[0] },
+      });
+      bridge.ethereumSignTypedData = ethereumSignTypedDataStub;
 
       // eslint-disable-next-line @typescript-eslint/ban-ts-comment
       // @ts-ignore next-line
@@ -629,7 +658,7 @@ describe('TrezorKeyring', function () {
         { version: SignTypedDataVersion.V4 },
       );
 
-      assert(ethereumSignTypedDataStub.calledOnce);
+      sinon.assert.calledOnce(ethereumSignTypedDataStub);
       sinon.assert.calledWithExactly(ethereumSignTypedDataStub, {
         path: "m/44'/60'/0'/0/0",
         data: {
