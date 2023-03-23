@@ -152,7 +152,7 @@ export class TrezorKeyring extends EventEmitter {
 
   async deserialize(opts: Partial<TrezorControllerOptions> = {}) {
     if (opts.hdk) {
-      this.setHdk(opts.hdk);
+      this.#setHdk(opts.hdk);
     }
 
     this.hdPath = opts.hdPath ?? hdPathString;
@@ -169,7 +169,7 @@ export class TrezorKeyring extends EventEmitter {
     return Boolean(this.hdk?.publicKey);
   }
 
-  setHdk({ publicKey, chainCode }: PublicHdKeyContent) {
+  #setHdk({ publicKey, chainCode }: PublicHdKeyContent) {
     this.hdk.publicKey = Buffer.from(publicKey, 'hex');
     this.hdk.chainCode = Buffer.from(chainCode, 'hex');
   }
@@ -186,7 +186,7 @@ export class TrezorKeyring extends EventEmitter {
         })
         .then((response) => {
           if (response.success) {
-            this.setHdk(response.payload);
+            this.#setHdk(response.payload);
             resolve('just unlocked');
           } else {
             reject(new Error(response.payload?.error || 'Unknown error'));
