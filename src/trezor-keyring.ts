@@ -34,11 +34,19 @@ export const TREZOR_CONNECT_MANIFEST = {
   appUrl: 'https://metamask.io',
 };
 
+interface PublicHdKeyContent {
+  chainCode: string;
+  publicKey: string;
+}
+
 export interface TrezorControllerOptions {
-  hdPath?: string;
-  accounts?: string[];
-  page?: number;
-  perPage?: number;
+  hdPath: string;
+  accounts: string[];
+  page: number;
+  perPage: number;
+  paths: Readonly<Record<string, number>>;
+  hdk: PublicHdKeyContent;
+  unlockedAccount: number;
 }
 
 export interface TrezorControllerState {
@@ -133,19 +141,37 @@ export class TrezorKeyring extends EventEmitter {
       paths: this.paths,
       perPage: this.perPage,
       unlockedAccount: this.unlockedAccount,
+      hdk: this.isUnlocked()
+        ? {
+          publicKey: this.hdk.publicKey.toString('hex'),
+          chainCode: this.hdk.chainCode.toString('hex'),
+        }
+        : null,
     });
   }
 
-  async deserialize(opts: TrezorControllerOptions = {}) {
+  async deserialize(opts: Partial<TrezorControllerOptions> = {}) {
+    if (opts.hdk) {
+      this.setHdk(opts.hdk);
+    }
+
     this.hdPath = opts.hdPath ?? hdPathString;
     this.accounts = opts.accounts ?? [];
     this.page = opts.page ?? 0;
+    this.paths = opts.paths ?? {};
     this.perPage = opts.perPage ?? 5;
+    this.unlockedAccount = opts.unlockedAccount ?? 0;
+
     return Promise.resolve();
   }
 
   isUnlocked() {
     return Boolean(this.hdk?.publicKey);
+  }
+
+  setHdk({ publicKey, chainCode }: PublicHdKeyContent) {
+    this.hdk.publicKey = Buffer.from(publicKey, 'hex');
+    this.hdk.chainCode = Buffer.from(chainCode, 'hex');
   }
 
   async unlock() {
@@ -160,8 +186,7 @@ export class TrezorKeyring extends EventEmitter {
         })
         .then((response) => {
           if (response.success) {
-            this.hdk.publicKey = Buffer.from(response.payload.publicKey, 'hex');
-            this.hdk.chainCode = Buffer.from(response.payload.chainCode, 'hex');
+            this.setHdk(response.payload);
             resolve('just unlocked');
           } else {
             reject(new Error(response.payload?.error || 'Unknown error'));
