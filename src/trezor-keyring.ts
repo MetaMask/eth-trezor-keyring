@@ -143,9 +143,9 @@ export class TrezorKeyring extends EventEmitter {
       unlockedAccount: this.unlockedAccount,
       hdk: this.isUnlocked()
         ? {
-          publicKey: this.hdk.publicKey.toString('hex'),
-          chainCode: this.hdk.chainCode.toString('hex'),
-        }
+            publicKey: this.hdk.publicKey.toString('hex'),
+            chainCode: this.hdk.chainCode.toString('hex'),
+          }
         : null,
     });
   }
