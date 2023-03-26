@@ -1,5 +1,7 @@
 import * as sinon from 'sinon';
-import TrezorConnect, { DEVICE_EVENT } from '@trezor/connect-web';
+import chai from 'chai';
+
+import TrezorConnect, { DEVICE, DEVICE_EVENT } from '@trezor/connect-web';
 
 import { TrezorConnectBridge } from './trezor-connect-bridge';
 import { TrezorBridge } from './trezor-bridge';
@@ -38,6 +40,28 @@ describe('TrezorConnectBridge', function () {
         manifest: TREZOR_CONNECT_MANIFEST,
         lazyLoad: true,
       });
+    });
+
+    it('is executed once', async function () {
+      const initStub = sinon.stub(TrezorConnect, 'init');
+
+      chai.expect((bridge as any).trezorConnectInitiated).to.equal(false);
+
+      await bridge.init({
+        manifest: TREZOR_CONNECT_MANIFEST,
+        lazyLoad: true,
+      });
+
+      chai.expect((bridge as any).trezorConnectInitiated).to.equal(true);
+
+      // try to re-initialize
+      await bridge.init({
+        manifest: TREZOR_CONNECT_MANIFEST,
+        lazyLoad: true,
+      });
+
+      // underlying init should only be called once
+      sinon.assert.calledOnce(initStub);
     });
   });
 
