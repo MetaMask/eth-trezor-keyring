@@ -1,7 +1,7 @@
 import * as sinon from 'sinon';
 import chai from 'chai';
 
-import TrezorConnect, { DEVICE, DEVICE_EVENT } from '@trezor/connect-web';
+import TrezorConnect, { DEVICE_EVENT } from '@trezor/connect-web';
 
 import { TrezorConnectBridge } from './trezor-connect-bridge';
 import { TrezorBridge } from './trezor-bridge';
