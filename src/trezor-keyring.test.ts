@@ -1,8 +1,4 @@
-import { strict as assert } from 'assert';
-import chai from 'chai';
-import spies from 'chai-spies';
 import * as sinon from 'sinon';
-
 import EthereumTx from 'ethereumjs-tx';
 import HDKey from 'hdkey';
 import TrezorConnect from '@trezor/connect-web';
@@ -25,8 +21,6 @@ global.navigator = navigatorShim;
 global.self = selfShim;
 
 const SIGNING_DELAY = 20;
-
-const { expect } = chai;
 
 const fakeAccounts = [
   '0xF30952A1c534CDE7bC471380065726fa8686dfB3',
@@ -103,8 +97,6 @@ const fakeTypeTwoTx = FeeMarketEIP1559Transaction.fromTxData(
   { common: commonEIP1559, freeze: false },
 );
 
-chai.use(spies);
-
 describe('TrezorKeyring', function () {
   let keyring: TrezorKeyring;
 
@@ -123,71 +115,61 @@ describe('TrezorKeyring', function () {
   describe('Keyring.type', function () {
     it('is a class property that returns the type string.', function () {
       const { type } = TrezorKeyring;
-      assert.equal(typeof type, 'string');
+      expect(typeof type).toBe('string');
     });
 
     it('returns the correct value', function () {
       const { type } = keyring;
       const correct = TrezorKeyring.type;
-      assert.equal(type, correct);
+      expect(type).toBe(correct);
     });
   });
 
   describe('constructor', function () {
-    it('constructs', function (done) {
+    it('constructs', async function () {
       const t = new TrezorKeyring({ hdPath: `m/44'/60'/0'/0` });
-      assert.equal(typeof t, 'object');
-      t.getAccounts().then((accounts) => {
-        assert.equal(Array.isArray(accounts), true);
-        done();
-      });
+      expect(typeof t).toBe('object');
+      const accounts = await t.getAccounts();
+      expect(Array.isArray(accounts)).toBe(true);
     });
   });
 
   describe('serialize', function () {
-    it('serializes an instance', function (done) {
-      keyring.serialize().then((output) => {
-        assert.equal(output.page, 0);
-        assert.equal(output.hdPath, `m/44'/60'/0'/0`);
-        assert.equal(Array.isArray(output.accounts), true);
-        assert.equal(output.accounts.length, 0);
-        done();
-      });
+    it('serializes an instance', async function () {
+      const output = await keyring.serialize();
+      expect(output.page).toBe(0);
+      expect(output.hdPath).toBe(`m/44'/60'/0'/0`);
+      expect(Array.isArray(output.accounts)).toBe(true);
+      expect(output.accounts).toHaveLength(0);
     });
   });
 
   describe('deserialize', function () {
-    it('serializes what it deserializes', function (done) {
+    it('serializes what it deserializes', async function () {
       const someHdPath = `m/44'/60'/0'/1`;
-      keyring
-        .deserialize({
-          page: 10,
-          hdPath: someHdPath,
-          accounts: [],
-        })
-        .then(async () => {
-          return keyring.serialize();
-        })
-        .then((serialized) => {
-          assert.equal(serialized.accounts.length, 0, 'restores 0 accounts');
-          assert.equal(serialized.page, 10, 'restores page');
-          assert.equal(serialized.hdPath, someHdPath, 'restores hdPath');
-          done();
-        });
+      await keyring.deserialize({
+        page: 10,
+        hdPath: someHdPath,
+        accounts: [],
+      });
+      const serialized = await keyring.serialize();
+      expect(serialized.accounts).toHaveLength(0);
+      expect(serialized.page).toBe(10);
+      expect(serialized.hdPath).toBe(someHdPath);
     });
   });
 
   describe('isUnlocked', function () {
     it('should return true if we have a public key', function () {
-      assert.equal(keyring.isUnlocked(), true);
+      expect(keyring.isUnlocked()).toBe(true);
     });
   });
 
   describe('unlock', function () {
-    it('should resolve if we have a public key', function (done) {
-      keyring.unlock().then((_) => {
-        done();
-      });
+    it('should resolve if we have a public key', async function () {
+      expect(async () => {
+        await keyring.unlock();
+      }).not.toThrow();
     });
 
     it('should call TrezorConnect.getPublicKey if we dont have a public key', async function () {
@@ -201,25 +183,23 @@ describe('TrezorKeyring', function () {
         // Since we only care about ensuring our function gets called,
         // we want to ignore warnings due to stub data
       }
-      assert(getPublicKeyStub.calledOnce);
+      expect(getPublicKeyStub.calledOnce).toBe(true);
     });
   });
 
   describe('setAccountToUnlock', function () {
     it('should set unlockedAccount', function () {
       keyring.setAccountToUnlock(3);
-      assert.equal(keyring.unlockedAccount, 3);
+      expect(keyring.unlockedAccount).toBe(3);
     });
   });
 
   describe('addAccounts', function () {
     describe('with no arguments', function () {
-      it('returns a single account', function (done) {
+      it('returns a single account', async function () {
         keyring.setAccountToUnlock(0);
-        keyring.addAccounts().then((accounts) => {
-          assert.equal(accounts.length, 1);
-          done();
-        });
+        const accounts = await keyring.addAccounts();
+        expect(accounts).toHaveLength(1);
       });
 
       it('returns the custom accounts desired', async function () {
@@ -227,43 +207,37 @@ describe('TrezorKeyring', function () {
         await keyring.addAccounts();
         keyring.setAccountToUnlock(2);
         const accounts = await keyring.addAccounts();
-        assert.equal(accounts[0], fakeAccounts[0]);
-        assert.equal(accounts[1], fakeAccounts[2]);
+        expect(accounts[0]).toBe(fakeAccounts[0]);
+        expect(accounts[1]).toBe(fakeAccounts[2]);
       });
     });
 
     describe('with a numeric argument', function () {
-      it('returns that number of accounts', function (done) {
+      it('returns that number of accounts', async function () {
         keyring.setAccountToUnlock(0);
-        keyring.addAccounts(5).then((accounts) => {
-          assert.equal(accounts.length, 5);
-          done();
-        });
+        const accounts = await keyring.addAccounts(5);
+        expect(accounts).toHaveLength(5);
       });
 
-      it('returns the expected accounts', function (done) {
+      it('returns the expected accounts', async function () {
         keyring.setAccountToUnlock(0);
-        keyring.addAccounts(3).then((accounts) => {
-          assert.equal(accounts[0], fakeAccounts[0]);
-          assert.equal(accounts[1], fakeAccounts[1]);
-          assert.equal(accounts[2], fakeAccounts[2]);
-          done();
-        });
+        const accounts = await keyring.addAccounts(3);
+        expect(accounts[0]).toBe(fakeAccounts[0]);
+        expect(accounts[1]).toBe(fakeAccounts[1]);
+        expect(accounts[2]).toBe(fakeAccounts[2]);
       });
     });
   });
 
   describe('removeAccount', function () {
     describe('if the account exists', function () {
-      it('should remove that account', function (done) {
+      it('should remove that account', async function () {
         keyring.setAccountToUnlock(0);
-        keyring.addAccounts().then(async (accounts) => {
-          assert.equal(accounts.length, 1);
-          keyring.removeAccount(fakeAccounts[0]);
-          const accountsAfterRemoval = await keyring.getAccounts();
-          assert.equal(accountsAfterRemoval.length, 0);
-          done();
-        });
+        const accounts = await keyring.addAccounts();
+        expect(accounts).toHaveLength(1);
+        keyring.removeAccount(fakeAccounts[0]);
+        const accountsAfterRemoval = await keyring.getAccounts();
+        expect(accountsAfterRemoval).toHaveLength(0);
       });
 
       it('should remove only the account requested', async function () {
@@ -273,13 +247,13 @@ describe('TrezorKeyring', function () {
         await keyring.addAccounts();
 
         let accounts = await keyring.getAccounts();
-        assert.equal(accounts.length, 2);
+        expect(accounts).toHaveLength(2);
 
         keyring.removeAccount(fakeAccounts[0]);
         accounts = await keyring.getAccounts();
 
-        assert.equal(accounts.length, 1);
-        assert.equal(accounts[0], fakeAccounts[1]);
+        expect(accounts).toHaveLength(1);
+        expect(accounts[0]).toBe(fakeAccounts[1]);
       });
     });
 
@@ -288,7 +262,7 @@ describe('TrezorKeyring', function () {
         const unexistingAccount = '0x0000000000000000000000000000000000000000';
         expect(() => {
           keyring.removeAccount(unexistingAccount);
-        }).to.throw(`Address ${unexistingAccount} not found in this keyring`);
+        }).toThrow(`Address ${unexistingAccount} not found in this keyring`);
       });
     });
   });
@@ -296,30 +270,30 @@ describe('TrezorKeyring', function () {
   describe('getFirstPage', function () {
     it('should set the currentPage to 1', async function () {
       await keyring.getFirstPage();
-      assert.equal(keyring.page, 1);
+      expect(keyring.page).toBe(1);
     });
 
     it('should return the list of accounts for current page', async function () {
       const accounts = await keyring.getFirstPage();
 
-      expect(accounts.length).to.equal(keyring.perPage);
-      expect(accounts[0]?.address, fakeAccounts[0]);
-      expect(accounts[1]?.address, fakeAccounts[1]);
-      expect(accounts[2]?.address, fakeAccounts[2]);
-      expect(accounts[3]?.address, fakeAccounts[3]);
-      expect(accounts[4]?.address, fakeAccounts[4]);
+      expect(accounts).toHaveLength(keyring.perPage);
+      expect(accounts[0]?.address).toBe(fakeAccounts[0]);
+      expect(accounts[1]?.address).toBe(fakeAccounts[1]);
+      expect(accounts[2]?.address).toBe(fakeAccounts[2]);
+      expect(accounts[3]?.address).toBe(fakeAccounts[3]);
+      expect(accounts[4]?.address).toBe(fakeAccounts[4]);
     });
   });
 
   describe('getNextPage', function () {
     it('should return the list of accounts for current page', async function () {
       const accounts = await keyring.getNextPage();
-      expect(accounts.length).to.equal(keyring.perPage);
-      expect(accounts[0]?.address, fakeAccounts[0]);
-      expect(accounts[1]?.address, fakeAccounts[1]);
-      expect(accounts[2]?.address, fakeAccounts[2]);
-      expect(accounts[3]?.address, fakeAccounts[3]);
-      expect(accounts[4]?.address, fakeAccounts[4]);
+      expect(accounts).toHaveLength(keyring.perPage);
+      expect(accounts[0]?.address).toBe(fakeAccounts[0]);
+      expect(accounts[1]?.address).toBe(fakeAccounts[1]);
+      expect(accounts[2]?.address).toBe(fakeAccounts[2]);
+      expect(accounts[3]?.address).toBe(fakeAccounts[3]);
+      expect(accounts[4]?.address).toBe(fakeAccounts[4]);
     });
 
     it('should be able to advance to the next page', async function () {
@@ -327,12 +301,12 @@ describe('TrezorKeyring', function () {
       await keyring.getNextPage();
 
       const accounts = await keyring.getNextPage();
-      expect(accounts.length).to.equal(keyring.perPage);
-      expect(accounts[0]?.address, fakeAccounts[keyring.perPage + 0]);
-      expect(accounts[1]?.address, fakeAccounts[keyring.perPage + 1]);
-      expect(accounts[2]?.address, fakeAccounts[keyring.perPage + 2]);
-      expect(accounts[3]?.address, fakeAccounts[keyring.perPage + 3]);
-      expect(accounts[4]?.address, fakeAccounts[keyring.perPage + 4]);
+      expect(accounts).toHaveLength(keyring.perPage);
+      expect(accounts[0]?.address).toBe(fakeAccounts[keyring.perPage + 0]);
+      expect(accounts[1]?.address).toBe(fakeAccounts[keyring.perPage + 1]);
+      expect(accounts[2]?.address).toBe(fakeAccounts[keyring.perPage + 2]);
+      expect(accounts[3]?.address).toBe(fakeAccounts[keyring.perPage + 3]);
+      expect(accounts[4]?.address).toBe(fakeAccounts[keyring.perPage + 4]);
     });
   });
 
@@ -342,12 +316,12 @@ describe('TrezorKeyring', function () {
       await keyring.getNextPage();
       const accounts = await keyring.getPreviousPage();
 
-      expect(accounts.length).to.equal(keyring.perPage);
-      expect(accounts[0]?.address, fakeAccounts[0]);
-      expect(accounts[1]?.address, fakeAccounts[1]);
-      expect(accounts[2]?.address, fakeAccounts[2]);
-      expect(accounts[3]?.address, fakeAccounts[3]);
-      expect(accounts[4]?.address, fakeAccounts[4]);
+      expect(accounts).toHaveLength(keyring.perPage);
+      expect(accounts[0]?.address).toBe(fakeAccounts[0]);
+      expect(accounts[1]?.address).toBe(fakeAccounts[1]);
+      expect(accounts[2]?.address).toBe(fakeAccounts[2]);
+      expect(accounts[3]?.address).toBe(fakeAccounts[3]);
+      expect(accounts[4]?.address).toBe(fakeAccounts[4]);
     });
 
     it('should be able to go back to the previous page', async function () {
@@ -355,12 +329,12 @@ describe('TrezorKeyring', function () {
       await keyring.getNextPage();
       const accounts = await keyring.getPreviousPage();
 
-      expect(accounts.length).to.equal(keyring.perPage);
-      expect(accounts[0]?.address, fakeAccounts[0]);
-      expect(accounts[1]?.address, fakeAccounts[1]);
-      expect(accounts[2]?.address, fakeAccounts[2]);
-      expect(accounts[3]?.address, fakeAccounts[3]);
-      expect(accounts[4]?.address, fakeAccounts[4]);
+      expect(accounts).toHaveLength(keyring.perPage);
+      expect(accounts[0]?.address).toBe(fakeAccounts[0]);
+      expect(accounts[1]?.address).toBe(fakeAccounts[1]);
+      expect(accounts[2]?.address).toBe(fakeAccounts[2]);
+      expect(accounts[3]?.address).toBe(fakeAccounts[3]);
+      expect(accounts[4]?.address).toBe(fakeAccounts[4]);
     });
   });
 
@@ -374,13 +348,13 @@ describe('TrezorKeyring', function () {
     });
 
     it('returns an array of accounts', function () {
-      assert.equal(Array.isArray(accounts), true);
-      assert.equal(accounts.length, 1);
+      expect(Array.isArray(accounts)).toBe(true);
+      expect(accounts).toHaveLength(1);
     });
 
     it('returns the expected', function () {
       const expectedAccount = fakeAccounts[accountIndex];
-      assert.equal(accounts[0], expectedAccount);
+      expect(accounts[0]).toBe(expectedAccount);
     });
   });
 
@@ -401,13 +375,13 @@ describe('TrezorKeyring', function () {
 
       const returnedTx = await keyring.signTransaction(fakeAccounts[0], fakeTx);
       // assert that the v,r,s values got assigned to tx.
-      assert.ok(returnedTx.v);
-      assert.ok(returnedTx.r);
-      assert.ok(returnedTx.s);
+      expect(returnedTx.v).toBeDefined();
+      expect(returnedTx.r).toBeDefined();
+      expect(returnedTx.s).toBeDefined();
       // ensure we get a older version transaction back
-      assert.equal((returnedTx as EthereumTx).getChainId(), 1);
-      assert.equal((returnedTx as TypedTransaction).common, undefined);
-      assert(ethereumSignTransactionStub.calledOnce);
+      expect((returnedTx as EthereumTx).getChainId()).toBe(1);
+      expect((returnedTx as TypedTransaction).common).toBeUndefined();
+      expect(ethereumSignTransactionStub.calledOnce).toBe(true);
     });
 
     it('should pass serialized newer transaction to trezor and return signed tx', async function () {
@@ -438,12 +412,11 @@ describe('TrezorKeyring', function () {
       );
       // ensure we get a new version transaction back
       // eslint-disable-next-line @typescript-eslint/unbound-method
-      assert.equal((returnedTx as EthereumTx).getChainId, undefined);
-      assert.equal(
+      expect((returnedTx as EthereumTx).getChainId).toBeUndefined();
+      expect(
         (returnedTx as TypedTransaction).common.chainId().toString(16),
-        '1',
-      );
-      assert(ethereumSignTransactionStub.calledOnce);
+      ).toBe('1');
+      expect(ethereumSignTransactionStub.calledOnce).toBe(true);
     });
 
     it('should pass serialized contract deployment transaction to trezor and return signed tx', async function () {
@@ -477,13 +450,12 @@ describe('TrezorKeyring', function () {
       );
       // ensure we get a new version transaction back
       // eslint-disable-next-line @typescript-eslint/unbound-method
-      assert.equal((returnedTx as EthereumTx).getChainId, undefined);
-      assert.equal(
+      expect((returnedTx as EthereumTx).getChainId).toBeUndefined();
+      expect(
         (returnedTx as TypedTransaction).common.chainId().toString(16),
-        '1',
-      );
-      assert(ethereumSignTransactionStub.calledOnce);
-      assert.deepEqual(ethereumSignTransactionStub.getCall(0).args[0], {
+      ).toBe('1');
+      expect(ethereumSignTransactionStub.calledOnce).toBe(true);
+      expect(ethereumSignTransactionStub.getCall(0).args[0]).toStrictEqual({
         path: `m/44'/60'/0'/0/0`,
         transaction: {
           ...contractDeploymentFakeTx.toJSON(),
@@ -514,18 +486,17 @@ describe('TrezorKeyring', function () {
       const ethereumSignTransactionStub = sinon
         .stub(TrezorConnect, 'ethereumSignTransaction')
         .callsFake(async (params) => {
-          expect(params.transaction).to.be.an('object');
+          expect(typeof params.transaction).toBe('object');
           // chainId must be a number, unlike other variables which can be hex-strings
-          expect(params.transaction)
-            .to.have.property('chainId')
-            .to.satisfy(Number.isInteger);
-          expect(params.transaction).to.have.property('maxFeePerGas');
-          expect(params.transaction).to.have.property('maxPriorityFeePerGas');
-          expect(params.transaction).to.not.have.property('gasPrice');
-          return Promise.resolve({
+          expect(params.transaction).toHaveProperty('chainId');
+          expect(Number.isInteger(params.transaction.chainId)).toBe(true);
+          expect(params.transaction).toHaveProperty('maxFeePerGas');
+          expect(params.transaction).toHaveProperty('maxPriorityFeePerGas');
+          expect(params.transaction).not.toHaveProperty('gasPrice');
+          return {
             success: true,
             payload: expectedRSV,
-          });
+          };
         });
 
       const returnedTx = await keyring.signTransaction(
@@ -533,8 +504,8 @@ describe('TrezorKeyring', function () {
         fakeTypeTwoTx,
       );
 
-      assert(ethereumSignTransactionStub.calledOnce);
-      expect(returnedTx.toJSON()).to.deep.equal({
+      expect(ethereumSignTransactionStub.calledOnce).toBe(true);
+      expect(returnedTx.toJSON()).toStrictEqual({
         ...fakeTypeTwoTx.toJSON(),
         ...expectedRSV,
       });
@@ -542,7 +513,7 @@ describe('TrezorKeyring', function () {
   });
 
   describe('signMessage', function () {
-    it('should call TrezorConnect.ethereumSignMessage', function (done) {
+    it('should call TrezorConnect.ethereumSignMessage', async function () {
       const ethereumSignMessageStub = sinon
         .stub(TrezorConnect, 'ethereumSignMessage')
         .resolves();
@@ -552,15 +523,17 @@ describe('TrezorKeyring', function () {
         // we want to ignore warnings due to stub data
       });
 
-      setTimeout(() => {
-        assert(ethereumSignMessageStub.calledOnce);
-        done();
-      }, SIGNING_DELAY);
+      await new Promise((resolve: (value?: unknown) => void) => {
+        setTimeout(() => {
+          expect(ethereumSignMessageStub.calledOnce).toBe(true);
+          resolve();
+        }, SIGNING_DELAY);
+      });
     });
   });
 
   describe('signPersonalMessage', function () {
-    it('should call TrezorConnect.ethereumSignMessage', function (done) {
+    it('should call TrezorConnect.ethereumSignMessage', async function () {
       const ethereumSignMessageStub = sinon
         .stub(TrezorConnect, 'ethereumSignMessage')
         .resolves();
@@ -570,12 +543,12 @@ describe('TrezorKeyring', function () {
         // we want to ignore warnings due to stub data
       });
 
-      setTimeout(() => {
+      await new Promise((resolve: (value?: unknown) => void) => {
         setTimeout(() => {
-          assert(ethereumSignMessageStub.calledOnce);
-          done();
-        });
-      }, SIGNING_DELAY);
+          expect(ethereumSignMessageStub.calledOnce).toBe(true);
+          resolve();
+        }, SIGNING_DELAY);
+      });
     });
   });
 
@@ -599,8 +572,8 @@ describe('TrezorKeyring', function () {
         error = e;
       }
 
-      expect(error).to.be.an.instanceof(Error);
-      expect((error as Error).toString()).to.contain(
+      expect(error).toBeInstanceOf(Error);
+      expect((error as Error).toString()).toContain(
         'Only version 4 of typed data signing is supported',
       );
     });
@@ -629,7 +602,7 @@ describe('TrezorKeyring', function () {
         { version: SignTypedDataVersion.V4 },
       );
 
-      assert(ethereumSignTypedDataStub.calledOnce);
+      expect(ethereumSignTypedDataStub.calledOnce).toBe(true);
       sinon.assert.calledWithExactly(ethereumSignTypedDataStub, {
         path: "m/44'/60'/0'/0/0",
         data: {
@@ -660,8 +633,10 @@ describe('TrezorKeyring', function () {
         error = e;
       }
 
-      expect(error instanceof Error).to.equal(true);
-      expect((error as Error).toString(), 'Not supported on this device');
+      expect(error instanceof Error).toBe(true);
+      expect((error as Error).toString()).toBe(
+        'Error: Not supported on this device',
+      );
     });
   });
 
@@ -676,8 +651,8 @@ describe('TrezorKeyring', function () {
 
       const accounts = await keyring.getAccounts();
 
-      assert.equal(keyring.isUnlocked(), false);
-      assert.equal(accounts.length, 0);
+      expect(keyring.isUnlocked()).toBe(false);
+      expect(accounts).toHaveLength(0);
     });
   });
 
@@ -700,16 +675,15 @@ describe('TrezorKeyring', function () {
 
     it('should do nothing if passed an hdPath equal to the current hdPath', async function () {
       keyring.setHdPath(initialProperties.hdPath);
-      assert.equal(keyring.hdPath, initialProperties.hdPath);
-      assert.deepEqual(keyring.accounts, initialProperties.accounts);
-      assert.equal(keyring.page, initialProperties.page);
-      assert.equal(keyring.perPage, initialProperties.perPage);
-      assert.equal(
-        keyring.hdk.publicKey.toString('hex'),
+      expect(keyring.hdPath).toBe(initialProperties.hdPath);
+      expect(keyring.accounts).toStrictEqual(initialProperties.accounts);
+      expect(keyring.page).toBe(initialProperties.page);
+      expect(keyring.perPage).toBe(initialProperties.perPage);
+      expect(keyring.hdk.publicKey.toString('hex')).toBe(
         fakeHdKey.publicKey.toString('hex'),
       );
-      assert.equal(keyring.unlockedAccount, accountToUnlock);
-      assert.deepEqual(keyring.paths, mockPaths);
+      expect(keyring.unlockedAccount).toBe(accountToUnlock);
+      expect(keyring.paths).toStrictEqual(mockPaths);
     });
 
     it('should update the hdPath and reset account and page properties if passed a new hdPath', async function () {
@@ -717,27 +691,24 @@ describe('TrezorKeyring', function () {
 
       keyring.setHdPath(SLIP0044TestnetPath);
 
-      assert.equal(keyring.hdPath, SLIP0044TestnetPath);
-      assert.deepEqual(keyring.accounts, []);
-      assert.equal(keyring.page, 0);
-      assert.equal(keyring.perPage, 5);
-      assert.equal(keyring.hdk.publicKey, null);
-      assert.equal(keyring.unlockedAccount, 0);
-      assert.deepEqual(keyring.paths, {});
+      expect(keyring.hdPath).toBe(SLIP0044TestnetPath);
+      expect(keyring.accounts).toStrictEqual([]);
+      expect(keyring.page).toBe(0);
+      expect(keyring.perPage).toBe(5);
+      expect(keyring.hdk.publicKey).toBeNull();
+      expect(keyring.unlockedAccount).toBe(0);
+      expect(keyring.paths).toStrictEqual({});
     });
 
     it('should throw an error if passed an unsupported hdPath', async function () {
       const unsupportedPath = 'unsupported hdPath';
-      try {
+      expect(() => {
         // eslint-disable-next-line @typescript-eslint/ban-ts-comment
         // @ts-ignore next-line
         keyring.setHdPath(unsupportedPath);
-      } catch (error) {
-        assert.equal(
-          (error as Error).message,
-          `The setHdPath method does not support setting HD Path to ${unsupportedPath}`,
-        );
-      }
+      }).toThrow(
+        `The setHdPath method does not support setting HD Path to ${unsupportedPath}`,
+      );
     });
   });
 });

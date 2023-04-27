@@ -19,7 +19,7 @@ module.exports = {
 
     {
       files: ['*.test.ts'],
-      extends: ['@metamask/eslint-config-mocha'],
+      extends: ['@metamask/eslint-config-jest'],
     },
   ],
 
