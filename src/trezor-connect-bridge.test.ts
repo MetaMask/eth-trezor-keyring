@@ -1,5 +1,4 @@
-import * as sinon from 'sinon';
-import TrezorConnect, { DEVICE_EVENT } from '@trezor/connect-web';
+import TrezorConnect, { DEVICE, DEVICE_EVENT } from '@trezor/connect-web';
 
 import { TrezorConnectBridge } from './trezor-connect-bridge';
 import { TrezorBridge } from './trezor-bridge';
@@ -13,84 +12,148 @@ describe('TrezorConnectBridge', function () {
   });
 
   afterEach(function () {
-    sinon.restore();
+    jest.resetAllMocks();
   });
 
   describe('init', function () {
     it('sets the event listener and calls init', async function () {
-      const onStub = sinon.stub(TrezorConnect, 'on');
-      const initStub = sinon.stub(TrezorConnect, 'init');
+      const onSpy = jest
+        .spyOn(TrezorConnect, 'on')
+        .mockImplementation((_, cb) => {
+          cb({
+            type: DEVICE.CONNECT,
+            payload: { features: { model: '1' } },
+          } as any);
+        });
+      const initSpy = jest.spyOn(TrezorConnect, 'init');
 
       await bridge.init({
         manifest: TREZOR_CONNECT_MANIFEST,
         lazyLoad: true,
       });
 
-      sinon.assert.calledOnce(onStub);
-      sinon.assert.calledWithExactly(
-        onStub,
-        DEVICE_EVENT as any,
-        sinon.match.func,
-      );
+      expect(onSpy).toHaveBeenCalledTimes(1);
+      expect(onSpy).toHaveBeenCalledWith(DEVICE_EVENT, expect.any(Function));
+      expect(bridge.model).toBe('1');
 
-      sinon.assert.calledOnce(initStub);
-      sinon.assert.calledWithExactly(initStub, {
+      expect(initSpy).toHaveBeenCalledTimes(1);
+      expect(initSpy).toHaveBeenCalledWith({
         manifest: TREZOR_CONNECT_MANIFEST,
         lazyLoad: true,
       });
+    });
+
+    it('event handler does not set model on wrong event type', async function () {
+      const onSpy = jest
+        .spyOn(TrezorConnect, 'on')
+        .mockImplementation((_, cb) => {
+          cb({
+            type: 'wrong-event-type',
+          } as any);
+        });
+
+      await bridge.init({
+        manifest: TREZOR_CONNECT_MANIFEST,
+        lazyLoad: true,
+      });
+
+      expect(onSpy).toHaveBeenCalledTimes(1);
+      expect(onSpy).toHaveBeenCalledWith(DEVICE_EVENT, expect.any(Function));
+      expect(bridge.model).toBeUndefined();
+    });
+
+    it('event handler does not set model if features object is missing', async function () {
+      const onSpy = jest
+        .spyOn(TrezorConnect, 'on')
+        .mockImplementation((_, cb) => {
+          cb({
+            type: DEVICE.CONNECT,
+            payload: {},
+          } as any);
+        });
+
+      await bridge.init({
+        manifest: TREZOR_CONNECT_MANIFEST,
+        lazyLoad: true,
+      });
+
+      expect(onSpy).toHaveBeenCalledTimes(1);
+      expect(onSpy).toHaveBeenCalledWith(DEVICE_EVENT, expect.any(Function));
+      expect(bridge.model).toBeUndefined();
+    });
+
+    it('does not call init again if already initialised', async function () {
+      const initSpy = jest.spyOn(TrezorConnect, 'init');
+
+      await bridge.init({
+        manifest: TREZOR_CONNECT_MANIFEST,
+        lazyLoad: true,
+      });
+
+      await bridge.init({
+        manifest: TREZOR_CONNECT_MANIFEST,
+        lazyLoad: true,
+      });
+
+      expect(initSpy).toHaveBeenCalledTimes(1);
     });
   });
 
   describe('dispose', function () {
     it('calls dispose', async function () {
-      const disposeStub = sinon.stub(TrezorConnect, 'dispose');
+      const disposeSpy = jest.spyOn(TrezorConnect, 'dispose');
 
       await bridge.dispose();
 
-      sinon.assert.calledOnce(disposeStub);
-      sinon.assert.calledWithExactly(disposeStub);
+      expect(disposeSpy).toHaveBeenCalledTimes(1);
+      expect(disposeSpy).toHaveBeenCalledWith();
     });
   });
 
   describe('getPublicKey', function () {
     it('calls getPublicKey', async function () {
-      const getPublicKeyStub = sinon.stub(TrezorConnect, 'getPublicKey');
+      const getPublicKeySpy = jest.spyOn(TrezorConnect, 'getPublicKey');
 
       const params = {
         path: `m/44'/60'/0'/0`,
         coin: 'ETH',
-      } as any;
+      };
       await bridge.getPublicKey(params);
 
-      sinon.assert.calledOnce(getPublicKeyStub);
-      sinon.assert.calledWithExactly(getPublicKeyStub, params);
+      expect(getPublicKeySpy).toHaveBeenCalledTimes(1);
+      expect(getPublicKeySpy).toHaveBeenCalledWith(params);
     });
   });
 
   describe('ethereumSignTransaction', function () {
     it('calls ethereumSignTransaction', async function () {
-      const ethereumSignTransactionStub = sinon.stub(
+      const ethereumSignTransactionSpy = jest.spyOn(
         TrezorConnect,
         'ethereumSignTransaction',
       );
 
-      const params: any = {
+      const params = {
         path: `m/44'/60'/0'/0`,
         transaction: {
           chainId: 1,
           to: '0x0',
+          value: '0',
+          gasLimit: '0',
+          nonce: '0',
+          maxFeePerGas: '0',
+          maxPriorityFeePerGas: '0',
         },
       };
       await bridge.ethereumSignTransaction(params);
 
-      sinon.assert.calledOnce(ethereumSignTransactionStub);
-      sinon.assert.calledWithExactly(ethereumSignTransactionStub, params);
+      expect(ethereumSignTransactionSpy).toHaveBeenCalledTimes(1);
+      expect(ethereumSignTransactionSpy).toHaveBeenCalledWith(params);
     });
   });
 
   describe('ethereumSignMessage', function () {
     it('calls ethereumSignMessage', async function () {
-      const ethereumSignMessageStub = sinon.stub(
+      const ethereumSignMessageSpy = jest.spyOn(
         TrezorConnect,
         'ethereumSignMessage',
       );
@@ -102,29 +165,36 @@ describe('TrezorConnectBridge', function () {
       };
       await bridge.ethereumSignMessage(params);
 
-      sinon.assert.calledOnce(ethereumSignMessageStub);
-      sinon.assert.calledWithExactly(ethereumSignMessageStub, params);
+      expect(ethereumSignMessageSpy).toHaveBeenCalledTimes(1);
+      expect(ethereumSignMessageSpy).toHaveBeenCalledWith(params);
     });
   });
 
   describe('ethereumSignTypedData', function () {
     it('calls ethereumSignTypedData', async function () {
-      const ethereumSignTypedDataStub = sinon.stub(
+      const ethereumSignTypedDataSspy = jest.spyOn(
         TrezorConnect,
         'ethereumSignTypedData',
       );
 
       const params = {
         path: `m/44'/60'/0'/0`,
-        data: {},
+        data: {
+          types: {
+            EIP712Domain: [],
+          },
+          primaryType: 'EIP712Domain' as const,
+          domain: {},
+          message: {},
+        },
         metamask_v4_compat: true,
         domain_separator_hash: '',
         message_hash: '',
-      } as any;
+      };
       await bridge.ethereumSignTypedData(params);
 
-      sinon.assert.calledOnce(ethereumSignTypedDataStub);
-      sinon.assert.calledWithExactly(ethereumSignTypedDataStub, params);
+      expect(ethereumSignTypedDataSspy).toHaveBeenCalledTimes(1);
+      expect(ethereumSignTypedDataSspy).toHaveBeenCalledWith(params);
     });
   });
 });

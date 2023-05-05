@@ -24,7 +24,6 @@ export class TrezorConnectBridge implements TrezorBridge {
       if (event.type !== DEVICE.CONNECT) {
         return;
       }
-
       this.model = event.payload.features?.model;
     });
 
