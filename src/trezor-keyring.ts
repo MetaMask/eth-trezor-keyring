@@ -28,7 +28,7 @@ const legacyMewPath = `m/44'/60'/0'`;
 
 const ALLOWED_HD_PATHS = {
   [hdPathString]: true,
-  [legacyMewPath]: true
+  [legacyMewPath]: true,
   [SLIP0044TestnetPath]: true,
 } as const;
 
