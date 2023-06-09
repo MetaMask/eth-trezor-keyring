@@ -19,9 +19,11 @@ import { TrezorBridge } from './trezor-bridge';
 
 const hdPathString = `m/44'/60'/0'/0`;
 const SLIP0044TestnetPath = `m/44'/1'/0'/0`;
+const legacyMewPath = `m/44'/60'/0'`;
 
 const ALLOWED_HD_PATHS = {
   [hdPathString]: true,
+  [legacyMewPath]: true,
   [SLIP0044TestnetPath]: true,
 } as const;
 
