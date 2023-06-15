@@ -8,7 +8,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [2.0.0]
 ### Changed
-- **BREAKING:** Refactor code to split keyring from bridge logic. ([#143](https://github.com/MetaMask/eth-trezor-keyring/pull/143))
+- **BREAKING:** Separate the bridge from the keyring ([#143](https://github.com/MetaMask/eth-trezor-keyring/pull/143))
+  - The Trezor bridge is now a separate class (`TrezorConnectBridge`), which must be constructed separately from the keyring and passed in as a constructor argument.
+  - The bridge initialization has been moved from the keyring constructor to the keyring `init` method. The bridge is expected to be passed to the keyring uninitialized, and the keyring `init` method is expected to be called after keyring construction (before the keyring is used).
+  - The keyring constructor no longer accepts keyring state. Instead, any pre-existing keyring state should be passed to the `deserialize` method after construction.
 
 ## [1.1.0]
 ### Added
