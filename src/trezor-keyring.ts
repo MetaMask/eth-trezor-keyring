@@ -123,7 +123,7 @@ export class TrezorKeyring extends EventEmitter {
     });
   }
 
-  dispose() {
+  async destroy() {
     return this.bridge.dispose();
   }
 

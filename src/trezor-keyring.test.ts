@@ -148,12 +148,12 @@ describe('TrezorKeyring', function () {
     });
   });
 
-  describe('dispose', function () {
+  describe('destroy', function () {
     it('calls dispose on bridge', async function () {
       const disposeStub = sinon.stub().resolves();
       bridge.dispose = disposeStub;
 
-      await keyring.dispose();
+      await keyring.destroy();
 
       expect(disposeStub.calledOnce).toBe(true);
       sinon.assert.calledWithExactly(disposeStub);
