@@ -6,6 +6,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.0.0]
+### Changed
+- **BREAKING:** Refactor code to split keyring from bridge logic. ([#143](https://github.com/MetaMask/eth-trezor-keyring/pull/143))
+
 ## [1.1.0]
 ### Added
 - Add legacy derivation path, allowing generation of accounts with the `m/44'/60'/0` path ([#175](https://github.com/MetaMask/eth-trezor-keyring/pull/175))
@@ -45,7 +49,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - Support new versions of ethereumjs/tx ([#88](https://github.com/metamask/eth-trezor-keyring/pull/88))
 
-[Unreleased]: https://github.com/metamask/eth-trezor-keyring/compare/v1.1.0...HEAD
+[Unreleased]: https://github.com/metamask/eth-trezor-keyring/compare/v2.0.0...HEAD
+[2.0.0]: https://github.com/metamask/eth-trezor-keyring/compare/v1.1.0...v2.0.0
 [1.1.0]: https://github.com/metamask/eth-trezor-keyring/compare/v1.0.0...v1.1.0
 [1.0.0]: https://github.com/metamask/eth-trezor-keyring/compare/v0.10.0...v1.0.0
 [0.10.0]: https://github.com/metamask/eth-trezor-keyring/compare/v0.9.1...v0.10.0
