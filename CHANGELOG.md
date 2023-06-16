@@ -6,19 +6,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-## [2.0.0]
-### Added
-- Add `destroy` method to `TrezorKeyring`, which replaces `dispose` ([#179](https://github.com/MetaMask/eth-trezor-keyring/pull/179))
-
-### Changed
-- **BREAKING:** Separate the bridge from the keyring ([#143](https://github.com/MetaMask/eth-trezor-keyring/pull/143))
-  - The Trezor bridge is now a separate class (`TrezorConnectBridge`), which must be constructed separately from the keyring and passed in as a constructor argument.
-  - The bridge initialization has been moved from the keyring constructor to the keyring `init` method. The bridge is expected to be passed to the keyring uninitialized, and the keyring `init` method is expected to be called after keyring construction (before the keyring is used).
-  - The keyring constructor no longer accepts keyring state. Instead, any pre-existing keyring state should be passed to the `deserialize` method after construction.
-
-### Removed
-- **BREAKING:** Remove `dispose` method from `TrezorKeyring`, which is replaced by `destroy` ([#179](https://github.com/MetaMask/eth-trezor-keyring/pull/179)) 
-
 ## [1.1.0]
 ### Added
 - Add legacy derivation path, allowing generation of accounts with the `m/44'/60'/0` path ([#175](https://github.com/MetaMask/eth-trezor-keyring/pull/175))
@@ -58,8 +45,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - Support new versions of ethereumjs/tx ([#88](https://github.com/metamask/eth-trezor-keyring/pull/88))
 
-[Unreleased]: https://github.com/metamask/eth-trezor-keyring/compare/v2.0.0...HEAD
-[2.0.0]: https://github.com/metamask/eth-trezor-keyring/compare/v1.1.0...v2.0.0
+[Unreleased]: https://github.com/metamask/eth-trezor-keyring/compare/v1.1.0...HEAD
 [1.1.0]: https://github.com/metamask/eth-trezor-keyring/compare/v1.0.0...v1.1.0
 [1.0.0]: https://github.com/metamask/eth-trezor-keyring/compare/v0.10.0...v1.0.0
 [0.10.0]: https://github.com/metamask/eth-trezor-keyring/compare/v0.9.1...v0.10.0
