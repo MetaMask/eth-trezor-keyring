@@ -44,8 +44,8 @@
     "@ethereumjs/tx": "^4.0.0",
     "@ethereumjs/util": "^8.0.0",
     "@metamask/eth-sig-util": "^7.0.0",
-    "@trezor/connect-plugin-ethereum": "^9.0.1",
-    "@trezor/connect-web": "^9.0.6",
+    "@trezor/connect-plugin-ethereum": "^9.0.2",
+    "@trezor/connect-web": "^9.1.5",
     "hdkey": "^2.1.0"
   },
   "devDependencies": {
@@ -113,7 +113,9 @@
       "@ethereumjs/tx>ethereumjs-util>ethereum-cryptography>keccak": false,
       "@ethereumjs/tx>ethereumjs-util>ethereum-cryptography>secp256k1": false,
       "ethereumjs-tx>ethereumjs-util>ethereum-cryptography>keccak": false,
-      "ethereumjs-tx>ethereumjs-util>ethereum-cryptography>secp256k1": false
+      "ethereumjs-tx>ethereumjs-util>ethereum-cryptography>secp256k1": false,
+      "@trezor/connect-web>@trezor/connect>@trezor/protobuf>protobufjs": false,
+      "@trezor/connect-web>@trezor/connect>@trezor/transport>usb": false
     }
   }
 }
