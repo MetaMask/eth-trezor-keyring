@@ -46,7 +46,7 @@
     "@metamask/eth-sig-util": "^5.0.2",
     "@trezor/connect-plugin-ethereum": "^9.0.1",
     "@trezor/connect-web": "^9.0.6",
-    "hdkey": "0.8.0"
+    "hdkey": "^2.1.0"
   },
   "devDependencies": {
     "@ethereumjs/common": "^3.0.0",
