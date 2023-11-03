@@ -979,8 +979,10 @@ __metadata:
     "@metamask/eslint-config-nodejs": ^8.0.0
     "@metamask/eslint-config-typescript": ^8.0.0
     "@metamask/eth-sig-util": ^7.0.0
+    "@trezor/analytics": ^1.0.9
     "@trezor/connect-plugin-ethereum": ^9.0.2
     "@trezor/connect-web": ^9.1.5
+    "@types/bytebuffer": ^5.0.46
     "@types/ethereumjs-tx": ^1.0.1
     "@types/hdkey": ^2.0.1
     "@types/jest": ^28.1.6
@@ -1297,7 +1299,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@trezor/analytics@npm:1.0.9":
+"@trezor/analytics@npm:1.0.9, @trezor/analytics@npm:^1.0.9":
   version: 1.0.9
   resolution: "@trezor/analytics@npm:1.0.9"
   dependencies:
@@ -1573,6 +1575,16 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@types/bytebuffer@npm:^5.0.46":
+  version: 5.0.46
+  resolution: "@types/bytebuffer@npm:5.0.46"
+  dependencies:
+    "@types/long": ^3.0.0
+    "@types/node": "*"
+  checksum: 43dc8df469141b65e3ac1f864f079ca046041794917b69a4a962014502daf140732276ffa241d849678ca867e8751332037c7857d2a5b81fe919f20f139fc573
+  languageName: node
+  linkType: hard
+
 "@types/debug@npm:^4.1.7":
   version: 4.1.9
   resolution: "@types/debug@npm:4.1.9"
@@ -1663,6 +1675,13 @@ __metadata:
   version: 4.14.191
   resolution: "@types/lodash@npm:4.14.191"
   checksum: ba0d5434e10690869f32d5ea49095250157cae502f10d57de0a723fd72229ce6c6a4979576f0f13e0aa9fbe3ce2457bfb9fa7d4ec3d6daba56730a51906d1491
+  languageName: node
+  linkType: hard
+
+"@types/long@npm:^3.0.0":
+  version: 3.0.32
+  resolution: "@types/long@npm:3.0.32"
+  checksum: 7c64c64b4a8bf38d9a6690f725ed5e92383905b22c1320493749729c4f476a74fa2507cc9364268ecdfdba1cf11573a46648157f3e34cb0c39f51b05d13c37eb
   languageName: node
   linkType: hard
 
