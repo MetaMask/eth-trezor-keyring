@@ -6,6 +6,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [3.0.0]
+### Uncategorized
+- deps: @metamask/eth-sig-util@^5.0.2->^7.0.0 ([#189](https://github.com/MetaMask/eth-trezor-keyring/pull/189))
+- Bump @babel/traverse from 7.21.4 to 7.23.2 ([#192](https://github.com/MetaMask/eth-trezor-keyring/pull/192))
+- deps: hdkey@0.8.0->^2.1.0 ([#190](https://github.com/MetaMask/eth-trezor-keyring/pull/190))
+- Bump postcss from 8.4.21 to 8.4.31 ([#191](https://github.com/MetaMask/eth-trezor-keyring/pull/191))
+- Increase minimum Node.js version from 14 to 16 ([#188](https://github.com/MetaMask/eth-trezor-keyring/pull/188))
+- Bump protobufjs from 6.11.3 to 6.11.4 ([#186](https://github.com/MetaMask/eth-trezor-keyring/pull/186))
+- Bump word-wrap from 1.2.3 to 1.2.4 ([#185](https://github.com/MetaMask/eth-trezor-keyring/pull/185))
+- Bump semver from 6.3.0 to 6.3.1 ([#183](https://github.com/MetaMask/eth-trezor-keyring/pull/183))
+- Add missing `get.sh` script ([#182](https://github.com/MetaMask/eth-trezor-keyring/pull/182))
+
 ## [2.0.0]
 ### Added
 - Add `destroy` method to `TrezorKeyring`, which replaces `dispose` ([#179](https://github.com/MetaMask/eth-trezor-keyring/pull/179))
@@ -58,12 +70,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - Support new versions of ethereumjs/tx ([#88](https://github.com/metamask/eth-trezor-keyring/pull/88))
 
-[Unreleased]: https://github.com/metamask/eth-trezor-keyring/compare/v2.0.0...HEAD
-[2.0.0]: https://github.com/metamask/eth-trezor-keyring/compare/v1.1.0...v2.0.0
-[1.1.0]: https://github.com/metamask/eth-trezor-keyring/compare/v1.0.0...v1.1.0
-[1.0.0]: https://github.com/metamask/eth-trezor-keyring/compare/v0.10.0...v1.0.0
-[0.10.0]: https://github.com/metamask/eth-trezor-keyring/compare/v0.9.1...v0.10.0
-[0.9.1]: https://github.com/metamask/eth-trezor-keyring/compare/v0.9.0...v0.9.1
-[0.9.0]: https://github.com/metamask/eth-trezor-keyring/compare/v0.8.0...v0.9.0
-[0.8.0]: https://github.com/metamask/eth-trezor-keyring/compare/v0.7.0...v0.8.0
-[0.7.0]: https://github.com/metamask/eth-trezor-keyring/releases/tag/v0.7.0
+[Unreleased]: https://github.com/MetaMask/eth-trezor-keyring/compare/v3.0.0...HEAD
+[3.0.0]: https://github.com/MetaMask/eth-trezor-keyring/compare/v2.0.0...v3.0.0
+[2.0.0]: https://github.com/MetaMask/eth-trezor-keyring/compare/v1.1.0...v2.0.0
+[1.1.0]: https://github.com/MetaMask/eth-trezor-keyring/compare/v1.0.0...v1.1.0
+[1.0.0]: https://github.com/MetaMask/eth-trezor-keyring/compare/v0.10.0...v1.0.0
+[0.10.0]: https://github.com/MetaMask/eth-trezor-keyring/compare/v0.9.1...v0.10.0
+[0.9.1]: https://github.com/MetaMask/eth-trezor-keyring/compare/v0.9.0...v0.9.1
+[0.9.0]: https://github.com/MetaMask/eth-trezor-keyring/compare/v0.8.0...v0.9.0
+[0.8.0]: https://github.com/MetaMask/eth-trezor-keyring/compare/v0.7.0...v0.8.0
+[0.7.0]: https://github.com/MetaMask/eth-trezor-keyring/releases/tag/v0.7.0
