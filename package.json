@@ -14,7 +14,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/metamask/eth-trezor-keyring.git"
+    "url": "https://github.com/MetaMask/eth-trezor-keyring.git"
   },
   "license": "ISC",
   "author": "Bruno Barbieri",
