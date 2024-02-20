@@ -37,15 +37,14 @@
     "test:watch": "jest --watch"
   },
   "resolutions": {
-    "@trezor/connect@9.0.6": "patch:@trezor/connect@npm%3A9.0.6#./.yarn/patches/@trezor-connect-npm-9.0.6-37abefdc3e.patch",
     "@types/web": "0.0.69"
   },
   "dependencies": {
     "@ethereumjs/tx": "^4.0.0",
     "@ethereumjs/util": "^8.0.0",
-    "@metamask/eth-sig-util": "^7.0.0",
-    "@trezor/connect-plugin-ethereum": "^9.0.1",
-    "@trezor/connect-web": "^9.0.6",
+    "@metamask/eth-sig-util": "^7.0.1",
+    "@trezor/connect-plugin-ethereum": "^9.0.3",
+    "@trezor/connect-web": "^9.1.11",
     "hdkey": "^2.1.0"
   },
   "devDependencies": {
@@ -113,7 +112,12 @@
       "@ethereumjs/tx>ethereumjs-util>ethereum-cryptography>keccak": false,
       "@ethereumjs/tx>ethereumjs-util>ethereum-cryptography>secp256k1": false,
       "ethereumjs-tx>ethereumjs-util>ethereum-cryptography>keccak": false,
-      "ethereumjs-tx>ethereumjs-util>ethereum-cryptography>secp256k1": false
+      "ethereumjs-tx>ethereumjs-util>ethereum-cryptography>secp256k1": false,
+      "@trezor/connect-web>@trezor/connect>@trezor/blockchain-link>@solana/web3.js>bigint-buffer": false,
+      "@trezor/connect-web>@trezor/connect>@trezor/blockchain-link>ws>bufferutil": false,
+      "@trezor/connect-web>@trezor/connect>@trezor/blockchain-link>ws>utf-8-validate": false,
+      "@trezor/connect-web>@trezor/connect>@trezor/protobuf>protobufjs": false,
+      "@trezor/connect-web>@trezor/connect>@trezor/transport>usb": false
     }
   }
 }

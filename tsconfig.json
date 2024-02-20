@@ -11,7 +11,8 @@
     "noUncheckedIndexedAccess": true,
     "strict": true,
     "target": "es2017",
-    "skipLibCheck": false
+    // circumvent missing types in @trezor/connect-web, please see https://github.com/trezor/trezor-suite/issues/10389
+    "skipLibCheck": true
   },
   "exclude": ["./dist/**/*"]
 }
