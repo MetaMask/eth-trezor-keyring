@@ -13,6 +13,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 - Bump `@metamask/eth-sig-util` from `^7.0.0` to `^7.0.1` ([#195](https://github.com/MetaMask/eth-trezor-keyring/pull/195))
 - Bump `@trezor/connect-plugin-ethereum` from `^9.0.1` to `^9.0.3` ([#195](https://github.com/MetaMask/eth-trezor-keyring/pull/195))
+- Should help fixing MM pop-up closing issue ([#10896](https://github.com/MetaMask/metamask-extension/issues/10896))
 
 ## [3.0.0]
 ### Changed
