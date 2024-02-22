@@ -6,6 +6,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [3.0.1]
+### Uncategorized
+- chore(deps): update trezor related dependencies ([#195](https://github.com/MetaMask/eth-trezor-keyring/pull/195))
+- Removing devs from CODEOWNERS ([#196](https://github.com/MetaMask/eth-trezor-keyring/pull/196))
+
 ## [3.0.0]
 ### Changed
 - **BREAKING**: Remove support for major node versions 14,15,17,19. Minimum Node.js version is now 16. ([#188](https://github.com/MetaMask/eth-trezor-keyring/pull/188))
@@ -64,7 +69,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - Support new versions of ethereumjs/tx ([#88](https://github.com/metamask/eth-trezor-keyring/pull/88))
 
-[Unreleased]: https://github.com/MetaMask/eth-trezor-keyring/compare/v3.0.0...HEAD
+[Unreleased]: https://github.com/MetaMask/eth-trezor-keyring/compare/v3.0.1...HEAD
+[3.0.1]: https://github.com/MetaMask/eth-trezor-keyring/compare/v3.0.0...v3.0.1
 [3.0.0]: https://github.com/MetaMask/eth-trezor-keyring/compare/v2.0.0...v3.0.0
 [2.0.0]: https://github.com/MetaMask/eth-trezor-keyring/compare/v1.1.0...v2.0.0
 [1.1.0]: https://github.com/MetaMask/eth-trezor-keyring/compare/v1.0.0...v1.1.0
