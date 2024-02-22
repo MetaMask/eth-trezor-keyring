@@ -7,9 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ## [3.0.1]
-### Uncategorized
-- chore(deps): update trezor related dependencies ([#195](https://github.com/MetaMask/eth-trezor-keyring/pull/195))
-- Removing devs from CODEOWNERS ([#196](https://github.com/MetaMask/eth-trezor-keyring/pull/196))
+### Fixed
+- Bump `@metamask/eth-sig-util` from `^7.0.0` to `^7.0.1` ([#195](https://github.com/MetaMask/eth-trezor-keyring/pull/195))
+- Bump `@trezor/connect-plugin-ethereum` from `^9.0.1` to `^9.0.3` ([#195](https://github.com/MetaMask/eth-trezor-keyring/pull/195))
+- Bump `@trezor/connect-web` from `^9.0.6` to `^9.1.11` ([#195](https://github.com/MetaMask/eth-trezor-keyring/pull/195))
 
 ## [3.0.0]
 ### Changed
