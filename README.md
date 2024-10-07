@@ -1,5 +1,10 @@
 # eth-trezor-keyring
 
+> [!WARNING]
+> This package has been moved into a
+> [new monorepo](https://github.com/MetaMask/accounts/tree/main/packages/keyring-eth-trezor).
+> This repository is no longer in use, and pull requests will no longer be accepted.
+
 An implementation of MetaMask's [Keyring interface](https://github.com/MetaMask/eth-simple-keyring#the-keyring-class-protocol), that uses a TREZOR hardware
 wallet for all cryptographic operations.
 
